@@ -61,7 +61,7 @@ describe('loadExtensions', () => {
       JSON.stringify(config),
     );
 
-    const extensions = loadExtensions(tempWorkspaceDir);
+    const extensions = await loadExtensions(tempWorkspaceDir);
     expect(extensions).toHaveLength(1);
     expect(extensions[0].path).toBe(extensionDir);
     expect(extensions[0].config.name).toBe('test-extension');
@@ -76,7 +76,7 @@ describe('loadExtensions', () => {
     createExtension(workspaceExtensionsDir, 'ext1', '1.0.0', true);
     createExtension(workspaceExtensionsDir, 'ext2', '2.0.0');
 
-    const extensions = loadExtensions(tempWorkspaceDir);
+    const extensions = await loadExtensions(tempWorkspaceDir);
 
     expect(extensions).toHaveLength(2);
     const ext1 = extensions.find((e) => e.config.name === 'ext1');
@@ -101,7 +101,7 @@ describe('loadExtensions', () => {
       'my-context-file.md',
     );
 
-    const extensions = loadExtensions(tempWorkspaceDir);
+    const extensions = await loadExtensions(tempWorkspaceDir);
 
     expect(extensions).toHaveLength(1);
     const ext1 = extensions.find((e) => e.config.name === 'ext1');

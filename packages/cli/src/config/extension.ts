@@ -26,11 +26,15 @@ export interface ExtensionConfig {
   excludeTools?: string[];
 }
 
-export function loadExtensions(workspaceDir: string): Extension[] {
-  const allExtensions = [
-    ...loadExtensionsFromDir(workspaceDir),
-    ...loadExtensionsFromDir(os.homedir()),
-  ];
+export async function loadExtensions(
+  workspaceDir: string,
+): Promise<Extension[]> {
+  const allExtensions = (
+    await Promise.all([
+      loadExtensionsFromDir(workspaceDir),
+      loadExtensionsFromDir(os.homedir()),
+    ])
+  ).flat();
 
   const uniqueExtensions = new Map<string, Extension>();
   for (const extension of allExtensions) {
@@ -42,34 +46,51 @@ export function loadExtensions(workspaceDir: string): Extension[] {
   return Array.from(uniqueExtensions.values());
 }
 
-function loadExtensionsFromDir(dir: string): Extension[] {
+async function loadExtensionsFromDir(dir: string): Promise<Extension[]> {
   const extensionsDir = path.join(dir, EXTENSIONS_DIRECTORY_NAME);
-  if (!fs.existsSync(extensionsDir)) {
+  try {
+    await fs.promises.access(extensionsDir);
+  } catch {
     return [];
   }
 
-  const extensions: Extension[] = [];
-  for (const subdir of fs.readdirSync(extensionsDir)) {
-    const extensionDir = path.join(extensionsDir, subdir);
-
-    const extension = loadExtension(extensionDir);
-    if (extension != null) {
-      extensions.push(extension);
-    }
+  let subdirs: string[];
+  try {
+    subdirs = await fs.promises.readdir(extensionsDir);
+  } catch {
+    return [];
   }
-  return extensions;
+
+  const extensions = await Promise.all(
+    subdirs.map((subdir) => {
+      const extensionDir = path.join(extensionsDir, subdir);
+      return loadExtension(extensionDir);
+    }),
+  );
+
+  return extensions.filter(
+    (extension): extension is Extension => extension != null,
+  );
 }
 
-function loadExtension(extensionDir: string): Extension | null {
-  if (!fs.statSync(extensionDir).isDirectory()) {
-    console.error(
-      `Warning: unexpected file ${extensionDir} in extensions directory.`,
-    );
+async function loadExtension(extensionDir: string): Promise<Extension | null> {
+  try {
+    const stats = await fs.promises.stat(extensionDir);
+    if (!stats.isDirectory()) {
+      console.error(
+        `Warning: unexpected file ${extensionDir} in extensions directory.`,
+      );
+      return null;
+    }
+  } catch {
+    // If we can't stat it, we can't load it.
     return null;
   }
 
   const configFilePath = path.join(extensionDir, EXTENSIONS_CONFIG_FILENAME);
-  if (!fs.existsSync(configFilePath)) {
+  try {
+    await fs.promises.access(configFilePath);
+  } catch {
     console.error(
       `Warning: extension directory ${extensionDir} does not contain a config file ${configFilePath}.`,
     );
@@ -77,7 +98,7 @@ function loadExtension(extensionDir: string): Extension | null {
   }
 
   try {
-    const configContent = fs.readFileSync(configFilePath, 'utf-8');
+    const configContent = await fs.promises.readFile(configFilePath, 'utf-8');
     const config = JSON.parse(configContent) as ExtensionConfig;
     if (!config.name || !config.version) {
       console.error(
@@ -86,9 +107,21 @@ function loadExtension(extensionDir: string): Extension | null {
       return null;
     }
 
-    const contextFiles = getContextFileNames(config)
-      .map((contextFileName) => path.join(extensionDir, contextFileName))
-      .filter((contextFilePath) => fs.existsSync(contextFilePath));
+    const contextFiles = (
+      await Promise.all(
+        getContextFileNames(config).map(async (contextFileName) => {
+          const contextFilePath = path.join(extensionDir, contextFileName);
+          try {
+            await fs.promises.access(contextFilePath);
+            return contextFilePath;
+          } catch {
+            return null;
+          }
+        }),
+      )
+    ).filter(
+      (contextFilePath): contextFilePath is string => contextFilePath !== null,
+    );
 
     return {
       path: extensionDir,

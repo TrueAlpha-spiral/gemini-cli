@@ -4,8 +4,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect } from 'vitest';
-import { escapePath, unescapePath } from './paths.js';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  escapePath,
+  unescapePath,
+  getProjectHash,
+  tildeifyPath,
+  shortenPath,
+  makeRelative,
+  getProjectTempDir,
+  getUserCommandsDir,
+  getProjectCommandsDir,
+} from './paths.js';
+import os from 'node:os';
+import path from 'node:path';
 
 describe('escapePath', () => {
   it('should escape spaces', () => {
@@ -210,5 +222,124 @@ describe('unescapePath', () => {
       'path\\\\\\\\ file.txt',
     );
     expect(unescapePath('file\\\\\\(test\\).txt')).toBe('file\\\\(test).txt');
+  });
+});
+
+describe('getProjectHash', () => {
+  it('should return a 64-character hex string', () => {
+    const hash = getProjectHash('/path/to/project');
+    expect(hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('should return the same hash for the same input', () => {
+    const hash1 = getProjectHash('/path/to/project');
+    const hash2 = getProjectHash('/path/to/project');
+    expect(hash1).toBe(hash2);
+  });
+
+  it('should return different hashes for different inputs', () => {
+    const hash1 = getProjectHash('/path/to/project');
+    const hash2 = getProjectHash('/other/path');
+    expect(hash1).not.toBe(hash2);
+  });
+});
+
+describe('tildeifyPath', () => {
+  beforeEach(() => {
+    vi.spyOn(os, 'homedir').mockReturnValue('/home/user');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('should replace home directory with tilde', () => {
+    expect(tildeifyPath('/home/user/project/file.txt')).toBe(
+      '~/project/file.txt',
+    );
+  });
+
+  it('should not replace if path does not start with home directory', () => {
+    expect(tildeifyPath('/other/path/file.txt')).toBe('/other/path/file.txt');
+  });
+
+  it('should handle path exactly equal to home directory', () => {
+    expect(tildeifyPath('/home/user')).toBe('~');
+  });
+});
+
+describe('shortenPath', () => {
+  it('should not shorten path if it is within maxLen', () => {
+    const filePath = '/path/to/file.txt';
+    expect(shortenPath(filePath, 30)).toBe(filePath);
+  });
+
+  it('should shorten long paths with ellipses', () => {
+    const filePath = '/path/to/a/very/long/directory/structure/file.txt';
+    const shortened = shortenPath(filePath, 20);
+    expect(shortened.length).toBeLessThanOrEqual(20);
+    expect(shortened).toContain('...');
+  });
+
+  it('should prioritize the start and end segments', () => {
+    const filePath = '/home/user/projects/my-awesome-project/src/index.ts';
+    const shortened = shortenPath(filePath, 30);
+    expect(shortened).toMatch(/^\/home\/user\/.*index\.ts$/);
+  });
+
+  it('should handle paths with only one segment after root', () => {
+    const filePath = '/verylongfilename.txt';
+    const shortened = shortenPath(filePath, 10);
+    expect(shortened).toBe('very...t.txt');
+  });
+});
+
+describe('makeRelative', () => {
+  it('should calculate relative path correctly', () => {
+    const target = '/app/project/src/index.ts';
+    const root = '/app/project';
+    // Use path.join to make it platform-independent in expectations if needed,
+    // but here we expect 'src/index.ts'
+    expect(makeRelative(target, root)).toBe(path.join('src', 'index.ts'));
+  });
+
+  it('should return "." if target and root are the same', () => {
+    const target = '/app/project';
+    const root = '/app/project';
+    expect(makeRelative(target, root)).toBe('.');
+  });
+
+  it('should handle different depths', () => {
+    const target = '/app/project';
+    const root = '/app/project/src';
+    expect(makeRelative(target, root)).toBe('..');
+  });
+});
+
+describe('path construction utilities', () => {
+  beforeEach(() => {
+    vi.spyOn(os, 'homedir').mockReturnValue('/home/user');
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('getProjectTempDir should return correct path', () => {
+    const projectRoot = '/app/project';
+    const hash = getProjectHash(projectRoot);
+    const expected = path.join('/home/user', '.gemini', 'tmp', hash);
+    expect(getProjectTempDir(projectRoot)).toBe(expected);
+  });
+
+  it('getUserCommandsDir should return correct path', () => {
+    const expected = path.join('/home/user', '.gemini', 'commands');
+    expect(getUserCommandsDir()).toBe(expected);
+  });
+
+  it('getProjectCommandsDir should return correct path', () => {
+    const projectRoot = '/app/project';
+    const expected = path.join(projectRoot, '.gemini', 'commands');
+    expect(getProjectCommandsDir(projectRoot)).toBe(expected);
   });
 });

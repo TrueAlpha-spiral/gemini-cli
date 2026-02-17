@@ -146,7 +146,7 @@ export async function main() {
   }
 
   const argv = await parseArguments();
-  const extensions = await loadExtensions(workspaceRoot);
+  const extensions = loadExtensions(workspaceRoot);
   const config = await loadCliConfig(
     settings.merged,
     extensions,

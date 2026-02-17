@@ -1,0 +1,12 @@
+{
+  "allowed_geos": ["US", "EU", "JP", "SG"],
+  "allowed_scopes": ["audit.read", "ledger.write", "prov.verify"],
+  "min_witnesses": 2,
+  "max_ttl_ms": 300000,
+  "constraints": {
+    "geo_check": true,
+    "scope_valid": true,
+    "witness_diversity": true,
+    "freshness": true
+  }
+}

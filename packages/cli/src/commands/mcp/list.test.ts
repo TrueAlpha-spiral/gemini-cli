@@ -50,7 +50,7 @@ describe('mcp list command', () => {
 
     MockedClient.mockImplementation(() => mockClient);
     mockedCreateTransport.mockResolvedValue(mockTransport);
-    mockedLoadExtensions.mockReturnValue([]);
+    mockedLoadExtensions.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -126,7 +126,7 @@ describe('mcp list command', () => {
       },
     });
 
-    mockedLoadExtensions.mockReturnValue([
+    mockedLoadExtensions.mockResolvedValue([
       {
         config: {
           name: 'test-extension',

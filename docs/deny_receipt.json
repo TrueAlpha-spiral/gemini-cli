@@ -1,0 +1,12 @@
+{
+  "decision": "DENY",
+  "reason_codes": [
+    "GEO_CHECK_FAIL"
+  ],
+  "policy_hash": "067d9444b2f7acd737645c8ee6920bc5f12af04ed4446765d7602e00e25fca67",
+  "timestamp": "2026-02-17T22:08:37.689Z",
+  "request_hash": "6949dc4c1fb3306f543ce5175f0bd0edaecc6893dceebd2178da2711683a444c",
+  "details": {
+    "note": "Structural refusal anchored to TAS_DNA strand."
+  }
+}

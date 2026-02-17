@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -42,7 +42,7 @@ describe('loadExtensions', () => {
     fs.rmSync(tempHomeDir, { recursive: true, force: true });
   });
 
-  it('should include extension path in loaded extension', () => {
+  it('should include extension path in loaded extension', async () => {
     const workspaceExtensionsDir = path.join(
       tempWorkspaceDir,
       EXTENSIONS_DIRECTORY_NAME,
@@ -67,7 +67,7 @@ describe('loadExtensions', () => {
     expect(extensions[0].config.name).toBe('test-extension');
   });
 
-  it('should load context file path when GEMINI.md is present', () => {
+  it('should load context file path when GEMINI.md is present', async () => {
     const workspaceExtensionsDir = path.join(
       tempWorkspaceDir,
       EXTENSIONS_DIRECTORY_NAME,
@@ -87,7 +87,7 @@ describe('loadExtensions', () => {
     expect(ext2?.contextFiles).toEqual([]);
   });
 
-  it('should load context file path from the extension config', () => {
+  it('should load context file path from the extension config', async () => {
     const workspaceExtensionsDir = path.join(
       tempWorkspaceDir,
       EXTENSIONS_DIRECTORY_NAME,

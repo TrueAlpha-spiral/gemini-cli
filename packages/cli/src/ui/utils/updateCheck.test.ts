@@ -48,7 +48,7 @@ describe('checkForUpdates', () => {
   });
 
   it('should return null if package.json is missing', async () => {
-    getPackageJson.mockResolvedValue(null);
+    getPackageJson.mockRejectedValue(new Error('Could not find package.json for @google/gemini-cli'));
     const result = await checkForUpdates();
     expect(result).toBeNull();
   });

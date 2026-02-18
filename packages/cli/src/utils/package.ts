@@ -22,17 +22,16 @@ const __dirname = path.dirname(__filename);
 
 let packageJson: PackageJson | undefined;
 
-export async function getPackageJson(): Promise<PackageJson | undefined> {
+export async function getPackageJson(): Promise<PackageJson> {
   if (packageJson) {
     return packageJson;
   }
 
   const result = await readPackageUp({ cwd: __dirname });
   if (!result) {
-    // TODO: Maybe bubble this up as an error.
-    return;
+    throw new Error('Could not find package.json for @google/gemini-cli');
   }
 
-  packageJson = result.packageJson;
+  packageJson = result.packageJson as PackageJson;
   return packageJson;
 }

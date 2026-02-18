@@ -56,6 +56,9 @@ export const useSlashCommandProcessor = (
 ) => {
   const session = useSessionStats();
   const [commands, setCommands] = useState<readonly SlashCommand[]>([]);
+  const [commandMap, setCommandMap] = useState<Map<string, SlashCommand>>(
+    new Map(),
+  );
   const [shellConfirmationRequest, setShellConfirmationRequest] =
     useState<null | {
       commands: string[];
@@ -207,6 +210,7 @@ export const useSlashCommandProcessor = (
         controller.signal,
       );
       setCommands(commandService.getCommands());
+      setCommandMap(commandService.getCommandMap());
     };
 
     load();
@@ -241,34 +245,20 @@ export const useSlashCommandProcessor = (
         const parts = trimmed.substring(1).trim().split(/\s+/);
         const commandPath = parts.filter((p) => p); // The parts of the command, e.g., ['memory', 'add']
 
-        let currentCommands = commands;
+        let currentCommandMap = commandMap;
         let commandToExecute: SlashCommand | undefined;
         let pathIndex = 0;
         const canonicalPath: string[] = [];
 
         for (const part of commandPath) {
-          // TODO: For better performance and architectural clarity, this two-pass
-          // search could be replaced. A more optimal approach would be to
-          // pre-compute a single lookup map in `CommandService.ts` that resolves
-          // all name and alias conflicts during the initial loading phase. The
-          // processor would then perform a single, fast lookup on that map.
-
-          // First pass: check for an exact match on the primary command name.
-          let foundCommand = currentCommands.find((cmd) => cmd.name === part);
-
-          // Second pass: if no primary name matches, check for an alias.
-          if (!foundCommand) {
-            foundCommand = currentCommands.find((cmd) =>
-              cmd.altNames?.includes(part),
-            );
-          }
+          const foundCommand = currentCommandMap.get(part);
 
           if (foundCommand) {
             commandToExecute = foundCommand;
             canonicalPath.push(foundCommand.name);
             pathIndex++;
-            if (foundCommand.subCommands) {
-              currentCommands = foundCommand.subCommands;
+            if (foundCommand.subCommandMap) {
+              currentCommandMap = foundCommand.subCommandMap;
             } else {
               break;
             }
@@ -468,7 +458,7 @@ export const useSlashCommandProcessor = (
       config,
       addItem,
       openAuthDialog,
-      commands,
+      commandMap,
       commandContext,
       addMessage,
       openThemeDialog,

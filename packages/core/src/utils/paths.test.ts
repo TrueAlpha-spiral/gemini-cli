@@ -253,6 +253,12 @@ describe('getProjectHash', () => {
     const hash = getProjectHash('/path with spaces/and!@#$%^&*()');
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
   });
+
+  it('should handle extremely long paths', () => {
+    const longPath = '/a'.repeat(2048);
+    const hash = getProjectHash(longPath);
+    expect(hash).toMatch(/^[a-f0-9]{64}$/);
+  });
 });
 
 describe('tildeifyPath', () => {
@@ -338,6 +344,14 @@ describe('resolveCanonicalPath', () => {
   it('should throw for path outside root', () => {
     const rootDir = '/app/project';
     const filePath = '../secret.txt';
+    expect(() => resolveCanonicalPath(filePath, rootDir)).toThrow(
+      'TAS_VIOLATION: Path Trajectory Out of Bounds',
+    );
+  });
+
+  it('should throw for sibling directory with similar prefix', () => {
+    const rootDir = '/app/project';
+    const filePath = '../project-secrets/key.txt';
     expect(() => resolveCanonicalPath(filePath, rootDir)).toThrow(
       'TAS_VIOLATION: Path Trajectory Out of Bounds',
     );

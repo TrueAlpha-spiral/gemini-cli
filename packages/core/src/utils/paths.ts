@@ -188,7 +188,8 @@ export function resolveCanonicalPath(
   const resolvedRoot = path.resolve(rootDirectory);
   const resolvedPath = path.resolve(resolvedRoot, filePath);
 
-  if (!resolvedPath.startsWith(resolvedRoot)) {
+  const relative = path.relative(resolvedRoot, resolvedPath);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
     throw new Error('TAS_VIOLATION: Path Trajectory Out of Bounds');
   }
 

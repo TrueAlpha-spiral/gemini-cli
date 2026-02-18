@@ -5,8 +5,8 @@
  */
 
 import path from 'node:path';
-import os from 'os';
-import * as crypto from 'crypto';
+import os from 'node:os';
+import * as crypto from 'node:crypto';
 
 export const GEMINI_DIR = '.gemini';
 export const GOOGLE_ACCOUNTS_FILENAME = 'google_accounts.json';
@@ -25,12 +25,12 @@ export const SHELL_SPECIAL_CHARS = /[ \t()[\]{};|*?$`'"#&<>!~]/;
  * @param path - The path to tildeify.
  * @returns The tildeified path.
  */
-export function tildeifyPath(path: string): string {
+export function tildeifyPath(pathStr: string): string {
   const homeDir = os.homedir();
-  if (path.startsWith(homeDir)) {
-    return path.replace(homeDir, '~');
+  if (pathStr.startsWith(homeDir)) {
+    return pathStr.replace(homeDir, '~');
   }
-  return path;
+  return pathStr;
 }
 
 /**
@@ -172,6 +172,28 @@ export function unescapePath(filePath: string): string {
  */
 export function getProjectHash(projectRoot: string): string {
   return crypto.createHash('sha256').update(projectRoot).digest('hex');
+}
+
+/**
+ * Resolves a path to its canonical absolute form and ensures it is within a root directory.
+ * @param filePath The path to resolve.
+ * @param rootDirectory The absolute path to the root directory. Defaults to process.cwd().
+ * @returns The resolved absolute path.
+ * @throws Error if the resolved path is outside the root directory.
+ */
+export function resolveCanonicalPath(
+  filePath: string,
+  rootDirectory: string = process.cwd(),
+): string {
+  const resolvedRoot = path.resolve(rootDirectory);
+  const resolvedPath = path.resolve(resolvedRoot, filePath);
+
+  const relative = path.relative(resolvedRoot, resolvedPath);
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error('TAS_VIOLATION: Path Trajectory Out of Bounds');
+  }
+
+  return resolvedPath;
 }
 
 /**

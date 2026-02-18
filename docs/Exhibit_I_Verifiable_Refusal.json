@@ -1,0 +1,7 @@
+{
+  "attempt_timestamp": "2026-02-18T16:40:50.031Z",
+  "offending_payload_hash": "0408dc556e2783fd5967e0a4374327be5b0678bc5938577cc5656bd39e3a9c81",
+  "reason": "LINEAGE_MISMATCH",
+  "refusal_signature": "ED25519_SIG_TAS_69e26312def6aba675f16a6c7d951575",
+  "violation_code": "P0_EQUIVALENCE_FAIL"
+}

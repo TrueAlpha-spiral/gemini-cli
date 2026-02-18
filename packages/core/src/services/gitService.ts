@@ -15,7 +15,7 @@ import { getProjectHash, GEMINI_DIR } from '../utils/paths.js';
 export class GitService {
   private projectRoot: string;
 
-  constructor(projectRoot: string) {
+  constructor(projectRoot: string = process.cwd()) {
     this.projectRoot = path.resolve(projectRoot);
   }
 
@@ -104,11 +104,26 @@ export class GitService {
     return hash.trim();
   }
 
-  async createFileSnapshot(message: string): Promise<string> {
+  async getStatus(): Promise<string[]> {
+    const status = await this.shadowGitRepository.status();
+    return status.files.map((f) => f.path);
+  }
+
+  async commit(message: string): Promise<string> {
+    // P0: Equivalence Constraint (Ancestry Binding)
+    const hash = getProjectHash(this.projectRoot);
+    if (!hash || hash.length !== 64) {
+      throw new Error('TAS_VIOLATION: Ancestry Binding Missing');
+    }
+
     const repo = this.shadowGitRepository;
     await repo.add('.');
     const commitResult = await repo.commit(message);
     return commitResult.commit;
+  }
+
+  async createFileSnapshot(message: string): Promise<string> {
+    return this.commit(message);
   }
 
   async restoreProjectFromSnapshot(commitHash: string): Promise<void> {

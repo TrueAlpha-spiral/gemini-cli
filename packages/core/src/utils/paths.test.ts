@@ -15,6 +15,7 @@ import {
   getProjectTempDir,
   getUserCommandsDir,
   getProjectCommandsDir,
+  resolveCanonicalPath,
 } from './paths.js';
 import os from 'node:os';
 import path from 'node:path';
@@ -242,6 +243,16 @@ describe('getProjectHash', () => {
     const hash2 = getProjectHash('/other/path');
     expect(hash1).not.toBe(hash2);
   });
+
+  it('should handle empty strings', () => {
+    const hash = getProjectHash('');
+    expect(hash).toMatch(/^[a-f0-9]{64}$/);
+  });
+
+  it('should handle paths with special characters', () => {
+    const hash = getProjectHash('/path with spaces/and!@#$%^&*()');
+    expect(hash).toMatch(/^[a-f0-9]{64}$/);
+  });
 });
 
 describe('tildeifyPath', () => {
@@ -313,6 +324,30 @@ describe('makeRelative', () => {
     const target = '/app/project';
     const root = '/app/project/src';
     expect(makeRelative(target, root)).toBe('..');
+  });
+});
+
+describe('resolveCanonicalPath', () => {
+  it('should resolve relative path within root', () => {
+    const rootDir = '/app/project';
+    const filePath = './src/index.ts';
+    const resolved = resolveCanonicalPath(filePath, rootDir);
+    expect(resolved).toBe(path.resolve(rootDir, filePath));
+  });
+
+  it('should throw for path outside root', () => {
+    const rootDir = '/app/project';
+    const filePath = '../secret.txt';
+    expect(() => resolveCanonicalPath(filePath, rootDir)).toThrow(
+      'TAS_VIOLATION: Path Trajectory Out of Bounds',
+    );
+  });
+
+  it('should work with absolute paths within root', () => {
+    const rootDir = '/app/project';
+    const filePath = '/app/project/src/main.ts';
+    const resolved = resolveCanonicalPath(filePath, rootDir);
+    expect(resolved).toBe(filePath);
   });
 });
 

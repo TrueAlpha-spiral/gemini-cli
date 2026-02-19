@@ -47,14 +47,14 @@ export function validateSovereignAction(action: SovereignAction): void {
     );
   }
 
-  if (!action.anchor.parent_hash) {
+  if (!action.anchor.parent_hash || action.anchor.parent_hash.trim() === '') {
     throw new SovereignViolationError(
       'Anchor lacks parent_hash.',
       'INVALID_ANCHOR'
     );
   }
 
-  if (!action.anchor.payload_hash) {
+  if (!action.anchor.payload_hash || action.anchor.payload_hash.trim() === '') {
     throw new SovereignViolationError(
       'Anchor lacks payload_hash.',
       'INVALID_ANCHOR'

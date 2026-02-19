@@ -68,4 +68,20 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       /parent_hash/
     );
   });
+
+  it('MUST FAIL when anchor parent_hash is only whitespace', () => {
+    const invalidAction: SovereignAction = {
+      ...validAction,
+      anchor: {
+        parent_hash: '   ',
+        payload_hash: 'valid-hash',
+      },
+    };
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      SovereignViolationError
+    );
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      /parent_hash/
+    );
+  });
 });

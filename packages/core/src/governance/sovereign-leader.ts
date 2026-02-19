@@ -1,0 +1,63 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import { SovereignAction } from './types.js';
+
+export class SovereignViolationError extends Error {
+  constructor(message: string, public readonly code: string) {
+    super(message);
+    this.name = 'SovereignViolationError';
+  }
+}
+
+/**
+ * Validates a sovereign action against the SOV-LEAD-001 gene:
+ * "LEADERSHIP_IS_REVOCABLE_BOUNDARY_AUTHORITY"
+ *
+ * Authority = revocation + anchoring.
+ *
+ * @param action The action to validate.
+ * @throws SovereignViolationError if the action is not compliant.
+ */
+export function validateSovereignAction(action: SovereignAction): void {
+  // Check Authority existence
+  if (!action.authority) {
+    throw new SovereignViolationError(
+      'Action lacks an executing authority.',
+      'MISSING_AUTHORITY'
+    );
+  }
+
+  // Check Revocation Capability (Must-pass: action is executable only when accompanied by a revocable authority token)
+  if (!action.authority.revocation_ref || action.authority.revocation_ref.trim() === '') {
+    throw new SovereignViolationError(
+      'Authority lacks revocation capability (revocation_ref). Execution forbidden.',
+      'MISSING_REVOCATION'
+    );
+  }
+
+  // Check Anchoring (Must-pass: action is executable only when accompanied by an anchor reference)
+  if (!action.anchor) {
+    throw new SovereignViolationError(
+      'Action is not anchored to a verifiable history.',
+      'MISSING_ANCHOR'
+    );
+  }
+
+  if (!action.anchor.parent_hash) {
+    throw new SovereignViolationError(
+      'Anchor lacks parent_hash.',
+      'INVALID_ANCHOR'
+    );
+  }
+
+  if (!action.anchor.payload_hash) {
+    throw new SovereignViolationError(
+      'Anchor lacks payload_hash.',
+      'INVALID_ANCHOR'
+    );
+  }
+}

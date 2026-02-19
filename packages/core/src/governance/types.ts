@@ -8,3 +8,10 @@ export type SovereignAction = {
     payload_hash: string;
   };
 };
+
+/**
+ * Interface for checking if a revocation reference is active.
+ */
+export interface RevocationRegistry {
+  isRevoked(revocation_ref: string): boolean;
+}

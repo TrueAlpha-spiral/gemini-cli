@@ -9,7 +9,7 @@ import {
   validateSovereignAction,
   SovereignViolationError,
 } from './sovereign-leader.js';
-import { SovereignAction } from './types.js';
+import { SovereignAction, RevocationRegistry } from './types.js';
 
 describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
   // Valid Action Template
@@ -83,5 +83,27 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
       /parent_hash/
     );
+  });
+
+  it('MUST FAIL if the authority token has been revoked (Stress Test #3)', () => {
+    const revokedRef = 'revoked-token-123';
+    const actionWithRevokedAuth: SovereignAction = {
+      ...validAction,
+      authority: {
+        ...validAction.authority,
+        revocation_ref: revokedRef,
+      },
+    };
+
+    const mockRegistry: RevocationRegistry = {
+      isRevoked: (ref) => ref === revokedRef,
+    };
+
+    expect(() =>
+      validateSovereignAction(actionWithRevokedAuth, mockRegistry)
+    ).toThrowError(SovereignViolationError);
+    expect(() =>
+      validateSovereignAction(actionWithRevokedAuth, mockRegistry)
+    ).toThrowError(/revoked/);
   });
 });

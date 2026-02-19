@@ -1,4 +1,4 @@
-import type { SovereignAction } from './types.js';
+import type { SovereignAction, RevocationRegistry } from './types.js';
 
 export class SovereignViolationError extends Error {
   public readonly code = 'SOV-LEAD-001';
@@ -18,8 +18,12 @@ function isBlank(v: unknown): boolean {
  * An action is only admissible if:
  *  - authority includes a revocable token reference (revocation_ref) that is non-blank
  *  - action is anchored with a complete chain pointer (parent_hash + payload_hash), both non-blank
+ *  - (Optional) if registry is provided, authority.revocation_ref must not be revoked
  */
-export function validateSovereignAction(action: SovereignAction): void {
+export function validateSovereignAction(
+  action: SovereignAction,
+  registry?: RevocationRegistry
+): void {
   // ---- Authority checks ----
   if (!action || !action.authority) {
     throw new SovereignViolationError(
@@ -31,6 +35,14 @@ export function validateSovereignAction(action: SovereignAction): void {
     throw new SovereignViolationError(
       'SOV-LEAD-001 violation: authority lacks revocation capability (revocation_ref).'
     );
+  }
+
+  if (registry) {
+    if (registry.isRevoked(action.authority.revocation_ref)) {
+      throw new SovereignViolationError(
+        'SOV-LEAD-001 violation: authority has been revoked (revocation_ref matched in registry).'
+      );
+    }
   }
 
   // ---- Anchor checks ----

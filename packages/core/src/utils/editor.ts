@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { execSync, spawn } from 'child_process';
+import { execSync, spawn, spawnSync } from 'child_process';
 
 export type EditorType =
   | 'vscode'
@@ -146,9 +146,11 @@ export function getDiffCommand(
         ],
       };
     case 'emacs':
+      // Escape paths for Elisp string literals
+      const escapeLispString = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
       return {
         command: 'emacs',
-        args: ['--eval', `(ediff "${oldPath}" "${newPath}")`],
+        args: ['--eval', `(ediff "${escapeLispString(oldPath)}" "${escapeLispString(newPath)}")`],
       };
     default:
       return null;
@@ -183,7 +185,7 @@ export async function openDiff(
         return new Promise((resolve, reject) => {
           const childProcess = spawn(diffCommand.command, diffCommand.args, {
             stdio: 'inherit',
-            shell: true,
+            // shell: true is explicitly removed to prevent command injection
           });
 
           childProcess.on('close', (code) => {
@@ -202,13 +204,9 @@ export async function openDiff(
       case 'vim':
       case 'emacs':
       case 'neovim': {
-        // Use execSync for terminal-based editors
-        const command =
-          process.platform === 'win32'
-            ? `${diffCommand.command} ${diffCommand.args.join(' ')}`
-            : `${diffCommand.command} ${diffCommand.args.map((arg) => `"${arg}"`).join(' ')}`;
+        // Use spawnSync for terminal-based editors to avoid shell injection
         try {
-          execSync(command, {
+          spawnSync(diffCommand.command, diffCommand.args, {
             stdio: 'inherit',
             encoding: 'utf8',
           });

@@ -244,7 +244,6 @@ export class FileCommandLoader implements ICommandLoader {
       extensionName,
       action: async (
         context: CommandContext,
-        _args: string,
       ): Promise<SlashCommandActionReturn> => {
         if (!context.invocation) {
           console.error(

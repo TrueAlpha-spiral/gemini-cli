@@ -15,8 +15,9 @@ export const toolsCommand: SlashCommand = {
   name: 'tools',
   description: 'list available Gemini CLI tools',
   kind: CommandKind.BUILT_IN,
-  action: async (context: CommandContext, args?: string): Promise<void> => {
-    const subCommand = args?.trim();
+  action: async (context: CommandContext): Promise<void> => {
+    const args = context.invocation?.args ?? '';
+    const subCommand = args.trim();
 
     // Default to NOT showing descriptions. The user must opt in with an argument.
     let useShowDescriptions = false;

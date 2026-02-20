@@ -51,6 +51,11 @@ describe('directoryCommand', () => {
     } as unknown as Config;
 
     mockContext = {
+      invocation: {
+        raw: '',
+        name: '',
+        args: '',
+      },
       services: {
         config: mockConfig,
         settings: {
@@ -68,7 +73,7 @@ describe('directoryCommand', () => {
   describe('show', () => {
     it('should display the list of directories', () => {
       if (!showCommand?.action) throw new Error('No action');
-      showCommand.action(mockContext, '');
+      showCommand.action(mockContext);
       expect(mockWorkspaceContext.getDirectories).toHaveBeenCalled();
       expect(mockContext.ui.addItem).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -85,7 +90,7 @@ describe('directoryCommand', () => {
   describe('add', () => {
     it('should show an error if no path is provided', () => {
       if (!addCommand?.action) throw new Error('No action');
-      addCommand.action(mockContext, '');
+      addCommand.action(mockContext);
       expect(mockContext.ui.addItem).toHaveBeenCalledWith(
         expect.objectContaining({
           type: MessageType.ERROR,
@@ -98,7 +103,8 @@ describe('directoryCommand', () => {
     it('should call addDirectory and show a success message for a single path', async () => {
       const newPath = path.normalize('/home/user/new-project');
       if (!addCommand?.action) throw new Error('No action');
-      await addCommand.action(mockContext, newPath);
+      mockContext.invocation!.args = newPath;
+      await addCommand.action(mockContext);
       expect(mockWorkspaceContext.addDirectory).toHaveBeenCalledWith(newPath);
       expect(mockContext.ui.addItem).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -113,7 +119,8 @@ describe('directoryCommand', () => {
       const newPath1 = path.normalize('/home/user/new-project1');
       const newPath2 = path.normalize('/home/user/new-project2');
       if (!addCommand?.action) throw new Error('No action');
-      await addCommand.action(mockContext, `${newPath1},${newPath2}`);
+      mockContext.invocation!.args = `${newPath1},${newPath2}`;
+      await addCommand.action(mockContext);
       expect(mockWorkspaceContext.addDirectory).toHaveBeenCalledWith(newPath1);
       expect(mockWorkspaceContext.addDirectory).toHaveBeenCalledWith(newPath2);
       expect(mockContext.ui.addItem).toHaveBeenCalledWith(
@@ -132,7 +139,8 @@ describe('directoryCommand', () => {
       });
       const newPath = path.normalize('/home/user/invalid-project');
       if (!addCommand?.action) throw new Error('No action');
-      await addCommand.action(mockContext, newPath);
+      mockContext.invocation!.args = newPath;
+      await addCommand.action(mockContext);
       expect(mockContext.ui.addItem).toHaveBeenCalledWith(
         expect.objectContaining({
           type: MessageType.ERROR,
@@ -155,7 +163,8 @@ describe('directoryCommand', () => {
       );
 
       if (!addCommand?.action) throw new Error('No action');
-      await addCommand.action(mockContext, `${validPath},${invalidPath}`);
+      mockContext.invocation!.args = `${validPath},${invalidPath}`;
+      await addCommand.action(mockContext);
 
       expect(mockContext.ui.addItem).toHaveBeenCalledWith(
         expect.objectContaining({

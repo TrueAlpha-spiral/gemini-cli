@@ -105,7 +105,7 @@ describe('chatCommand', () => {
         (async (_: string): Promise<string[]> =>
           [] as string[]) as unknown as typeof fsPromises.readdir,
       );
-      const result = await listCommand?.action?.(mockContext, '');
+      const result = await listCommand?.action?.(mockContext);
       expect(result).toEqual({
         type: 'message',
         messageType: 'info',
@@ -130,7 +130,6 @@ describe('chatCommand', () => {
 
       const result = (await listCommand?.action?.(
         mockContext,
-        '',
       )) as MessageActionReturn;
 
       const content = result?.content ?? '';
@@ -173,7 +172,8 @@ describe('chatCommand', () => {
     });
 
     it('should return an error if tag is missing', async () => {
-      const result = await saveCommand?.action?.(mockContext, '  ');
+      mockContext.invocation!.args = '  ';
+      const result = await saveCommand?.action?.(mockContext);
       expect(result).toEqual({
         type: 'message',
         messageType: 'error',
@@ -183,7 +183,8 @@ describe('chatCommand', () => {
 
     it('should inform if conversation history is empty', async () => {
       mockGetHistory.mockReturnValue([]);
-      const result = await saveCommand?.action?.(mockContext, tag);
+      mockContext.invocation!.args = tag;
+      const result = await saveCommand?.action?.(mockContext);
       expect(result).toEqual({
         type: 'message',
         messageType: 'info',
@@ -199,7 +200,8 @@ describe('chatCommand', () => {
         },
       ];
       mockGetHistory.mockReturnValue(history);
-      const result = await saveCommand?.action?.(mockContext, tag);
+      mockContext.invocation!.args = tag;
+      const result = await saveCommand?.action?.(mockContext);
 
       expect(mockSaveCheckpoint).toHaveBeenCalledWith(history, tag);
       expect(result).toEqual({
@@ -220,7 +222,8 @@ describe('chatCommand', () => {
     });
 
     it('should return an error if tag is missing', async () => {
-      const result = await resumeCommand?.action?.(mockContext, '');
+      mockContext.invocation!.args = '';
+      const result = await resumeCommand?.action?.(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -232,7 +235,8 @@ describe('chatCommand', () => {
     it('should inform if checkpoint is not found', async () => {
       mockLoadCheckpoint.mockResolvedValue([]);
 
-      const result = await resumeCommand?.action?.(mockContext, badTag);
+      mockContext.invocation!.args = badTag;
+      const result = await resumeCommand?.action?.(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -248,7 +252,8 @@ describe('chatCommand', () => {
       ];
       mockLoadCheckpoint.mockResolvedValue(conversation);
 
-      const result = await resumeCommand?.action?.(mockContext, goodTag);
+      mockContext.invocation!.args = goodTag;
+      const result = await resumeCommand?.action?.(mockContext);
 
       expect(result).toEqual({
         type: 'load_history',
@@ -311,7 +316,8 @@ describe('chatCommand', () => {
     });
 
     it('should return an error if tag is missing', async () => {
-      const result = await deleteCommand?.action?.(mockContext, '  ');
+      mockContext.invocation!.args = '  ';
+      const result = await deleteCommand?.action?.(mockContext);
       expect(result).toEqual({
         type: 'message',
         messageType: 'error',
@@ -321,7 +327,8 @@ describe('chatCommand', () => {
 
     it('should return an error if checkpoint is not found', async () => {
       mockDeleteCheckpoint.mockResolvedValue(false);
-      const result = await deleteCommand?.action?.(mockContext, tag);
+      mockContext.invocation!.args = tag;
+      const result = await deleteCommand?.action?.(mockContext);
       expect(result).toEqual({
         type: 'message',
         messageType: 'error',
@@ -330,7 +337,8 @@ describe('chatCommand', () => {
     });
 
     it('should delete the conversation', async () => {
-      const result = await deleteCommand?.action?.(mockContext, tag);
+      mockContext.invocation!.args = tag;
+      const result = await deleteCommand?.action?.(mockContext);
 
       expect(mockDeleteCheckpoint).toHaveBeenCalledWith(tag);
       expect(result).toEqual({

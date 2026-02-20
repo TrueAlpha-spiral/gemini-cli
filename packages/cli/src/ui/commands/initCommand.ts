@@ -19,7 +19,6 @@ export const initCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
   action: async (
     context: CommandContext,
-    _args: string,
   ): Promise<SlashCommandActionReturn> => {
     if (!context.services.config) {
       return {

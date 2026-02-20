@@ -309,7 +309,6 @@ describe('useSlashCommandProcessor', () => {
             addItem: mockAddItem,
           }),
         }),
-        'with args',
       );
     });
 
@@ -733,7 +732,7 @@ describe('useSlashCommandProcessor', () => {
         await result.current.handleSlashCommand('  /test  with-args  ');
       });
 
-      expect(action).toHaveBeenCalledWith(expect.anything(), 'with-args');
+      expect(action).toHaveBeenCalledWith(expect.anything());
     });
 
     it('should handle `?` as a command prefix', async () => {

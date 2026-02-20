@@ -37,7 +37,7 @@ describe('toolsCommand', () => {
     });
 
     if (!toolsCommand.action) throw new Error('Action not defined');
-    await toolsCommand.action(mockContext, '');
+    await toolsCommand.action(mockContext);
 
     expect(mockContext.ui.addItem).toHaveBeenCalledWith(
       {
@@ -59,7 +59,7 @@ describe('toolsCommand', () => {
     });
 
     if (!toolsCommand.action) throw new Error('Action not defined');
-    await toolsCommand.action(mockContext, '');
+    await toolsCommand.action(mockContext);
 
     expect(mockContext.ui.addItem).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -80,7 +80,7 @@ describe('toolsCommand', () => {
     });
 
     if (!toolsCommand.action) throw new Error('Action not defined');
-    await toolsCommand.action(mockContext, '');
+    await toolsCommand.action(mockContext);
 
     const message = (mockContext.ui.addItem as vi.Mock).mock.calls[0][0].text;
     expect(message).not.toContain('Reads files from the local system.');
@@ -99,7 +99,8 @@ describe('toolsCommand', () => {
     });
 
     if (!toolsCommand.action) throw new Error('Action not defined');
-    await toolsCommand.action(mockContext, 'desc');
+    mockContext.invocation!.args = 'desc';
+    await toolsCommand.action(mockContext);
 
     const message = (mockContext.ui.addItem as vi.Mock).mock.calls[0][0].text;
     expect(message).toContain('Reads files from the local system.');

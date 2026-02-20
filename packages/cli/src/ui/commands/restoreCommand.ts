@@ -16,11 +16,11 @@ import { Config } from '@google/gemini-cli-core';
 
 async function restoreAction(
   context: CommandContext,
-  args: string,
 ): Promise<void | SlashCommandActionReturn> {
   const { services, ui } = context;
   const { config, git: gitService } = services;
   const { addItem, loadHistory } = ui;
+  const args = context.invocation?.args ?? '';
 
   const checkpointDir = config?.getProjectTempDir()
     ? path.join(config.getProjectTempDir(), 'checkpoints')

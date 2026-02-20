@@ -109,7 +109,7 @@ describe('mcpCommand', () => {
         },
       });
 
-      const result = await mcpCommand.action!(contextWithoutConfig, '');
+      const result = await mcpCommand.action!(contextWithoutConfig);
 
       expect(result).toEqual({
         type: 'message',
@@ -121,7 +121,7 @@ describe('mcpCommand', () => {
     it('should show an error if tool registry is not available', async () => {
       mockConfig.getToolRegistry = vi.fn().mockResolvedValue(undefined);
 
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -140,7 +140,7 @@ describe('mcpCommand', () => {
     });
 
     it('should display a message with a URL when no MCP servers are configured', async () => {
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -188,7 +188,7 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue(allTools),
       });
 
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -247,7 +247,8 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue(mockServerTools),
       });
 
-      const result = await mcpCommand.action!(mockContext, 'desc');
+      mockContext.invocation!.args = 'desc';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -300,7 +301,8 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue(mockServerTools),
       });
 
-      const result = await mcpCommand.action!(mockContext, 'nodesc');
+      mockContext.invocation!.args = 'nodesc';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -344,7 +346,7 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue(mockServerTools),
       });
 
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -390,7 +392,7 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue(mockServerTools),
       });
 
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -420,7 +422,7 @@ describe('mcpCommand', () => {
       };
       mockConfig.getMcpServers = vi.fn().mockReturnValue(mockMcpServers);
 
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -436,7 +438,7 @@ describe('mcpCommand', () => {
       ];
       mockConfig.getBlockedMcpServers = vi.fn().mockReturnValue(blockedServers);
 
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -527,7 +529,8 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue(mockServerTools),
       });
 
-      const result = await mcpCommand.action!(mockContext, 'schema');
+      mockContext.invocation!.args = 'schema';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -570,7 +573,8 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue(mockServerTools),
       });
 
-      const result = await mcpCommand.action!(mockContext, 'schema');
+      mockContext.invocation!.args = 'schema';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -609,7 +613,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle "descriptions" as alias for "desc"', async () => {
-      const result = await mcpCommand.action!(mockContext, 'descriptions');
+      mockContext.invocation!.args = 'descriptions';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -620,7 +625,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle "nodescriptions" as alias for "nodesc"', async () => {
-      const result = await mcpCommand.action!(mockContext, 'nodescriptions');
+      mockContext.invocation!.args = 'nodescriptions';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -632,7 +638,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle mixed case arguments', async () => {
-      const result = await mcpCommand.action!(mockContext, 'DESC');
+      mockContext.invocation!.args = 'DESC';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -643,7 +650,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle multiple arguments - "schema desc"', async () => {
-      const result = await mcpCommand.action!(mockContext, 'schema desc');
+      mockContext.invocation!.args = 'schema desc';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -655,7 +663,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle multiple arguments - "desc schema"', async () => {
-      const result = await mcpCommand.action!(mockContext, 'desc schema');
+      mockContext.invocation!.args = 'desc schema';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -667,7 +676,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle "schema" alone showing descriptions', async () => {
-      const result = await mcpCommand.action!(mockContext, 'schema');
+      mockContext.invocation!.args = 'schema';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -679,7 +689,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle "nodesc" overriding "schema" - "schema nodesc"', async () => {
-      const result = await mcpCommand.action!(mockContext, 'schema nodesc');
+      mockContext.invocation!.args = 'schema nodesc';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -692,7 +703,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle "nodesc" overriding "desc" - "desc nodesc"', async () => {
-      const result = await mcpCommand.action!(mockContext, 'desc nodesc');
+      mockContext.invocation!.args = 'desc nodesc';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -705,9 +717,9 @@ describe('mcpCommand', () => {
     });
 
     it('should handle "nodesc" overriding both "desc" and "schema" - "desc schema nodesc"', async () => {
+      mockContext.invocation!.args = 'desc schema nodesc';
       const result = await mcpCommand.action!(
         mockContext,
-        'desc schema nodesc',
       );
 
       expect(isMessageAction(result)).toBe(true);
@@ -721,7 +733,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle extra whitespace in arguments', async () => {
-      const result = await mcpCommand.action!(mockContext, '  desc   schema  ');
+      mockContext.invocation!.args = '  desc   schema  ';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -733,7 +746,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle empty arguments gracefully', async () => {
-      const result = await mcpCommand.action!(mockContext, '');
+      mockContext.invocation!.args = '';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -746,7 +760,8 @@ describe('mcpCommand', () => {
     });
 
     it('should handle unknown arguments gracefully', async () => {
-      const result = await mcpCommand.action!(mockContext, 'unknown arg');
+      mockContext.invocation!.args = 'unknown arg';
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -770,7 +785,7 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue([]),
       });
 
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',
@@ -791,7 +806,7 @@ describe('mcpCommand', () => {
         getAllTools: vi.fn().mockReturnValue([]),
       });
 
-      const result = await mcpCommand.action!(mockContext, '');
+      const result = await mcpCommand.action!(mockContext);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -826,7 +841,8 @@ describe('mcpCommand', () => {
       );
       expect(authCommand).toBeDefined();
 
-      const result = await authCommand!.action!(context, '');
+      context.invocation!.args = '';
+      const result = await authCommand!.action!(context);
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
         expect(result.messageType).toBe('info');
@@ -851,7 +867,8 @@ describe('mcpCommand', () => {
       const authCommand = mcpCommand.subCommands?.find(
         (cmd) => cmd.name === 'auth',
       );
-      const result = await authCommand!.action!(context, '');
+      context.invocation!.args = '';
+      const result = await authCommand!.action!(context);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -890,7 +907,8 @@ describe('mcpCommand', () => {
       const authCommand = mcpCommand.subCommands?.find(
         (cmd) => cmd.name === 'auth',
       );
-      const result = await authCommand!.action!(context, 'test-server');
+      context.invocation!.args = 'test-server';
+      const result = await authCommand!.action!(context);
 
       expect(MCPOAuthProvider.authenticate).toHaveBeenCalledWith(
         'test-server',
@@ -928,7 +946,8 @@ describe('mcpCommand', () => {
       const authCommand = mcpCommand.subCommands?.find(
         (cmd) => cmd.name === 'auth',
       );
-      const result = await authCommand!.action!(context, 'test-server');
+      context.invocation!.args = 'test-server';
+      const result = await authCommand!.action!(context);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -952,7 +971,8 @@ describe('mcpCommand', () => {
       const authCommand = mcpCommand.subCommands?.find(
         (cmd) => cmd.name === 'auth',
       );
-      const result = await authCommand!.action!(context, 'non-existent');
+      context.invocation!.args = 'non-existent';
+      const result = await authCommand!.action!(context);
 
       expect(isMessageAction(result)).toBe(true);
       if (isMessageAction(result)) {
@@ -991,7 +1011,7 @@ describe('mcpCommand', () => {
       );
       expect(refreshCommand).toBeDefined();
 
-      const result = await refreshCommand!.action!(context, '');
+      const result = await refreshCommand!.action!(context);
 
       expect(context.ui.addItem).toHaveBeenCalledWith(
         {
@@ -1020,7 +1040,7 @@ describe('mcpCommand', () => {
       const refreshCommand = mcpCommand.subCommands?.find(
         (cmd) => cmd.name === 'refresh',
       );
-      const result = await refreshCommand!.action!(contextWithoutConfig, '');
+      const result = await refreshCommand!.action!(contextWithoutConfig);
 
       expect(result).toEqual({
         type: 'message',
@@ -1035,7 +1055,7 @@ describe('mcpCommand', () => {
       const refreshCommand = mcpCommand.subCommands?.find(
         (cmd) => cmd.name === 'refresh',
       );
-      const result = await refreshCommand!.action!(mockContext, '');
+      const result = await refreshCommand!.action!(mockContext);
 
       expect(result).toEqual({
         type: 'message',

@@ -318,8 +318,8 @@ const authCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
   action: async (
     context: CommandContext,
-    args: string,
   ): Promise<MessageActionReturn> => {
+    const args = context.invocation?.args ?? '';
     const serverName = args.trim();
     const { config } = context.services;
 
@@ -445,7 +445,8 @@ const listCommand: SlashCommand = {
   name: 'list',
   description: 'List configured MCP servers and tools',
   kind: CommandKind.BUILT_IN,
-  action: async (context: CommandContext, args: string) => {
+  action: async (context: CommandContext) => {
+    const args = context.invocation?.args ?? '';
     const lowerCaseArgs = args.toLowerCase().split(/\s+/).filter(Boolean);
 
     const hasDesc =
@@ -518,7 +519,7 @@ export const mcpCommand: SlashCommand = {
   kind: CommandKind.BUILT_IN,
   subCommands: [listCommand, authCommand, refreshCommand],
   // Default action when no subcommand is provided
-  action: async (context: CommandContext, args: string) =>
+  action: async (context: CommandContext) =>
     // If no subcommand, run the list command
-    listCommand.action!(context, args),
+    listCommand.action!(context),
 };

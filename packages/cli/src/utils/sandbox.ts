@@ -391,8 +391,17 @@ export async function start_sandbox(
       }
     }
 
+    // Parse config.command to handle flags (e.g. "docker --host ...")
+    const parsedCommand = parse(config.command).filter(
+      (a): a is string => typeof a === 'string',
+    );
+    const commandExe = parsedCommand[0];
+    const commandArgs = parsedCommand.slice(1);
+
     // stop if image is missing
-    if (!(await ensureSandboxImageIsPresent(config.command, image))) {
+    if (
+      !(await ensureSandboxImageIsPresent(commandExe, commandArgs, image))
+    ) {
       const remedy =
         image === LOCAL_DEV_SANDBOX_IMAGE_NAME
           ? 'Try running `npm run build:all` or `npm run build:sandbox` under the gemini-cli repo to build it locally, or check the image name and your network connection.'
@@ -405,7 +414,15 @@ export async function start_sandbox(
 
     // use interactive mode and auto-remove container on exit
     // run init binary inside container to forward signals & reap zombies
-    const args = ['run', '-i', '--rm', '--init', '--workdir', containerWorkdir];
+    const args = [
+      ...commandArgs,
+      'run',
+      '-i',
+      '--rm',
+      '--init',
+      '--workdir',
+      containerWorkdir,
+    ];
 
     // add custom flags from SANDBOX_FLAGS
     if (process.env.SANDBOX_FLAGS) {
@@ -745,10 +762,28 @@ export async function start_sandbox(
 
     if (proxyCommand) {
       // run proxyCommand in its own container
-      const proxyContainerCommand = `${config.command} run --rm --init ${userFlag} --name ${SANDBOX_PROXY_NAME} --network ${SANDBOX_PROXY_NAME} -p 8877:8877 -v ${process.cwd()}:${workdir} --workdir ${workdir} ${image} ${proxyCommand}`;
-      proxyProcess = spawn(proxyContainerCommand, {
+      const proxyArgs = [
+        ...commandArgs,
+        'run',
+        '--rm',
+        '--init',
+        ...parse(userFlag).filter((a): a is string => typeof a === 'string'),
+        '--name',
+        SANDBOX_PROXY_NAME,
+        '--network',
+        SANDBOX_PROXY_NAME,
+        '-p',
+        '8877:8877',
+        '-v',
+        `${process.cwd()}:${workdir}`,
+        '--workdir',
+        workdir,
+        image,
+        ...parse(proxyCommand).filter((a): a is string => typeof a === 'string'),
+      ];
+
+      proxyProcess = spawn(commandExe, proxyArgs, {
         stdio: ['ignore', 'pipe', 'pipe'],
-        shell: true,
         detached: true,
       });
       // install handlers to stop proxy on exit/signal
@@ -769,7 +804,7 @@ export async function start_sandbox(
       });
       proxyProcess.on('close', (code, signal) => {
         console.error(
-          `ERROR: proxy container command '${proxyContainerCommand}' exited with code ${code}, signal ${signal}`,
+          `ERROR: proxy container command '${proxyArgs.join(' ')}' exited with code ${code}, signal ${signal}`,
         );
         if (sandboxProcess?.pid) {
           process.kill(-sandboxProcess.pid, 'SIGTERM');
@@ -788,7 +823,7 @@ export async function start_sandbox(
     }
 
     // spawn child and let it inherit stdio
-    sandboxProcess = spawn(config.command, args, {
+    sandboxProcess = spawn(commandExe, args, {
       stdio: 'inherit',
     });
 
@@ -812,10 +847,14 @@ export async function start_sandbox(
 }
 
 // Helper functions to ensure sandbox image is present
-async function imageExists(sandbox: string, image: string): Promise<boolean> {
+async function imageExists(
+  sandboxExe: string,
+  sandboxArgs: string[],
+  image: string,
+): Promise<boolean> {
   return new Promise((resolve) => {
-    const args = ['images', '-q', image];
-    const checkProcess = spawn(sandbox, args);
+    const args = [...sandboxArgs, 'images', '-q', image];
+    const checkProcess = spawn(sandboxExe, args);
 
     let stdoutData = '';
     if (checkProcess.stdout) {
@@ -826,7 +865,7 @@ async function imageExists(sandbox: string, image: string): Promise<boolean> {
 
     checkProcess.on('error', (err) => {
       console.warn(
-        `Failed to start '${sandbox}' command for image check: ${err.message}`,
+        `Failed to start '${sandboxExe}' command for image check: ${err.message}`,
       );
       resolve(false);
     });
@@ -842,11 +881,15 @@ async function imageExists(sandbox: string, image: string): Promise<boolean> {
   });
 }
 
-async function pullImage(sandbox: string, image: string): Promise<boolean> {
-  console.info(`Attempting to pull image ${image} using ${sandbox}...`);
+async function pullImage(
+  sandboxExe: string,
+  sandboxArgs: string[],
+  image: string,
+): Promise<boolean> {
+  console.info(`Attempting to pull image ${image} using ${sandboxExe}...`);
   return new Promise((resolve) => {
-    const args = ['pull', image];
-    const pullProcess = spawn(sandbox, args, { stdio: 'pipe' });
+    const args = [...sandboxArgs, 'pull', image];
+    const pullProcess = spawn(sandboxExe, args, { stdio: 'pipe' });
 
     let stderrData = '';
 
@@ -861,7 +904,7 @@ async function pullImage(sandbox: string, image: string): Promise<boolean> {
 
     const onError = (err: Error) => {
       console.warn(
-        `Failed to start '${sandbox} pull ${image}' command: ${err.message}`,
+        `Failed to start '${sandboxExe} pull ${image}' command: ${err.message}`,
       );
       cleanup();
       resolve(false);
@@ -874,7 +917,7 @@ async function pullImage(sandbox: string, image: string): Promise<boolean> {
         resolve(true);
       } else {
         console.warn(
-          `Failed to pull image ${image}. '${sandbox} pull ${image}' exited with code ${code}.`,
+          `Failed to pull image ${image}. '${sandboxExe} pull ${image}' exited with code ${code}.`,
         );
         if (stderrData.trim()) {
           // Details already printed by the stderr listener above
@@ -910,11 +953,12 @@ async function pullImage(sandbox: string, image: string): Promise<boolean> {
 }
 
 async function ensureSandboxImageIsPresent(
-  sandbox: string,
+  sandboxExe: string,
+  sandboxArgs: string[],
   image: string,
 ): Promise<boolean> {
   console.info(`Checking for sandbox image: ${image}`);
-  if (await imageExists(sandbox, image)) {
+  if (await imageExists(sandboxExe, sandboxArgs, image)) {
     console.info(`Sandbox image ${image} found locally.`);
     return true;
   }
@@ -925,9 +969,9 @@ async function ensureSandboxImageIsPresent(
     return false;
   }
 
-  if (await pullImage(sandbox, image)) {
+  if (await pullImage(sandboxExe, sandboxArgs, image)) {
     // After attempting to pull, check again to be certain
-    if (await imageExists(sandbox, image)) {
+    if (await imageExists(sandboxExe, sandboxArgs, image)) {
       console.info(`Sandbox image ${image} is now available after pulling.`);
       return true;
     } else {

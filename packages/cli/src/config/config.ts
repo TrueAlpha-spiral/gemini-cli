@@ -27,6 +27,7 @@ import {
   EditTool,
   WriteFileTool,
   MCPServerConfig,
+  getLogger,
 } from '@google/gemini-cli-core';
 import { Settings } from './settings.js';
 
@@ -35,15 +36,7 @@ import { getCliVersion } from '../utils/version.js';
 import { loadSandboxConfig } from './sandboxConfig.js';
 import { resolvePath } from '../utils/resolvePath.js';
 
-// Simple console logger for now - replace with actual logger if available
-const logger = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  debug: (...args: any[]) => console.debug('[DEBUG]', ...args),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  warn: (...args: any[]) => console.warn('[WARN]', ...args),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error: (...args: any[]) => console.error('[ERROR]', ...args),
-};
+const logger = getLogger('Config');
 
 export interface CliArgs {
   model: string | undefined;

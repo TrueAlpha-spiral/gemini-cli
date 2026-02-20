@@ -20,13 +20,9 @@ import {
 } from '../ide/ideContext.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { getLogger } from '../utils/logging.js';
 
-const logger = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  debug: (...args: any[]) => console.debug('[DEBUG] [IDEClient]', ...args),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error: (...args: any[]) => console.error('[ERROR] [IDEClient]', ...args),
-};
+const logger = getLogger('IDEClient');
 
 export type IDEConnectionState = {
   status: IDEConnectionStatus;
@@ -215,13 +211,15 @@ export class IdeClient {
     // disconnected, so that the first detail message is preserved.
     if (!isAlreadyDisconnected) {
       this.state = { status, details };
-      if (logToConsole) {
+      if (logToConsole && details) {
         logger.error(details);
       }
     }
 
     if (status === IDEConnectionStatus.Disconnected) {
-      logger.debug(details);
+      if (details) {
+        logger.debug(details);
+      }
       ideContext.clearIdeContext();
     }
   }

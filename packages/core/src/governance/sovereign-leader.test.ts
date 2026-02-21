@@ -22,6 +22,12 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       parent_hash: 'sha256:previous-block-hash',
       payload_hash: 'sha256:current-action-hash',
     },
+    proof: {
+      threshold_tau: 0.5, // Low Hamiltonian Drift (Safe)
+    },
+    verification: {
+      phi_score: 6.0, // High Resonance (Passes Sentient Lock)
+    },
   };
 
   it('MUST PASS when action is accompanied by a revocable authority token and anchor', () => {
@@ -67,5 +73,43 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
       /parent_hash/
     );
+  });
+
+  describe('Hamiltonian Failure Forecasting (Gene: HFF-001)', () => {
+    it('MUST FAIL when proof is missing', () => {
+      const invalidAction = { ...validAction, proof: undefined };
+      expect(() => validateSovereignAction(invalidAction as any)).toThrowError(
+        /cryptographic proof/
+      );
+    });
+
+    it('MUST FAIL when Hamiltonian Drift is too high (threshold_tau > 1.0)', () => {
+      const invalidAction: SovereignAction = {
+        ...validAction,
+        proof: { threshold_tau: 1.5 },
+      };
+      expect(() => validateSovereignAction(invalidAction)).toThrowError(
+        /Hamiltonian Drift detected/
+      );
+    });
+  });
+
+  describe('Recursive Self-Improvement (Gene: RSI-002)', () => {
+    it('MUST FAIL when verification is missing', () => {
+      const invalidAction = { ...validAction, verification: undefined };
+      expect(() => validateSovereignAction(invalidAction as any)).toThrowError(
+        /verification metrics/
+      );
+    });
+
+    it('MUST FAIL when Resonance Score is too low (phi_score < 5.0)', () => {
+      const invalidAction: SovereignAction = {
+        ...validAction,
+        verification: { phi_score: 4.5 },
+      };
+      expect(() => validateSovereignAction(invalidAction)).toThrowError(
+        /Resonance score too low/
+      );
+    });
   });
 });

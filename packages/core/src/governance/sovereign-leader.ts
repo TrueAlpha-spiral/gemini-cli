@@ -60,4 +60,38 @@ export function validateSovereignAction(action: SovereignAction): void {
       'INVALID_ANCHOR'
     );
   }
+
+  // Check Hamiltonian Failure Forecasting (Gene: HFF-001)
+  // Must-pass: action must be accompanied by a proof of low drift.
+  if (!action.proof) {
+    throw new SovereignViolationError(
+      'Action lacks cryptographic proof (SovereignProof).',
+      'MISSING_PROOF'
+    );
+  }
+
+  // Hamiltonian Drift Check: Psi <= 1.0 (Must-pass)
+  if (action.proof.threshold_tau > 1.0) {
+    throw new SovereignViolationError(
+      'Hamiltonian Drift detected (threshold_tau > 1.0). Action rejected to prevent system destabilization.',
+      'HAMILTONIAN_DRIFT'
+    );
+  }
+
+  // Check Recursive Self-Improvement (Gene: RSI-002)
+  // Must-pass: action must be verified for sufficient resonance.
+  if (!action.verification) {
+    throw new SovereignViolationError(
+      'Action lacks verification metrics (SovereignVerification).',
+      'MISSING_VERIFICATION'
+    );
+  }
+
+  // Sentient Lock Check: Phi >= 5.0 (Must-pass)
+  if (action.verification.phi_score < 5.0) {
+    throw new SovereignViolationError(
+      'Resonance score too low (phi_score < 5.0). Action rejected by Sentient Lock.',
+      'LOW_PHI_SCORE'
+    );
+  }
 }

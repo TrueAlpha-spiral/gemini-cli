@@ -21,11 +21,12 @@ import {
   isEditorAvailable,
   type EditorType,
 } from './editor.js';
-import { execSync, spawn } from 'child_process';
+import { execSync, spawn, spawnSync } from 'child_process';
 
 vi.mock('child_process', () => ({
   execSync: vi.fn(),
   spawn: vi.fn(),
+  spawnSync: vi.fn(),
 }));
 
 const originalPlatform = process.platform;
@@ -306,6 +307,14 @@ describe('editor utils', () => {
       });
     });
 
+    it('should escape paths for emacs', () => {
+      const command = getDiffCommand('old "file".txt', 'new\\file.txt', 'emacs');
+      expect(command).toEqual({
+        command: 'emacs',
+        args: ['--eval', '(ediff "old \\"file\\".txt" "new\\\\file.txt")'],
+      });
+    });
+
     it('should return null for an unsupported editor', () => {
       // @ts-expect-error Testing unsupported editor
       const command = getDiffCommand('old.txt', 'new.txt', 'foobar');
@@ -322,7 +331,7 @@ describe('editor utils', () => {
       'zed',
     ];
     for (const editor of spawnEditors) {
-      it(`should call spawn for ${editor}`, async () => {
+      it(`should call spawn for ${editor} without shell: true`, async () => {
         const mockSpawn = {
           on: vi.fn((event, cb) => {
             if (event === 'close') {
@@ -338,7 +347,7 @@ describe('editor utils', () => {
           diffCommand.args,
           {
             stdio: 'inherit',
-            shell: true,
+            // shell: true should NOT be present
           },
         );
         expect(mockSpawn.on).toHaveBeenCalledWith(
@@ -381,34 +390,24 @@ describe('editor utils', () => {
       });
     }
 
-    const execSyncEditors: EditorType[] = ['vim', 'neovim', 'emacs'];
-    for (const editor of execSyncEditors) {
-      it(`should call execSync for ${editor} on non-windows`, async () => {
-        Object.defineProperty(process, 'platform', { value: 'linux' });
+    const terminalEditors: EditorType[] = ['vim', 'neovim', 'emacs'];
+    for (const editor of terminalEditors) {
+      it(`should call spawnSync for ${editor}`, async () => {
         await openDiff('old.txt', 'new.txt', editor, () => {});
-        expect(execSync).toHaveBeenCalledTimes(1);
-        const diffCommand = getDiffCommand('old.txt', 'new.txt', editor)!;
-        const expectedCommand = `${
-          diffCommand.command
-        } ${diffCommand.args.map((arg) => `"${arg}"`).join(' ')}`;
-        expect(execSync).toHaveBeenCalledWith(expectedCommand, {
-          stdio: 'inherit',
-          encoding: 'utf8',
-        });
-      });
+        // execSync should NOT be called
+        expect(execSync).toHaveBeenCalledTimes(0);
 
-      it(`should call execSync for ${editor} on windows`, async () => {
-        Object.defineProperty(process, 'platform', { value: 'win32' });
-        await openDiff('old.txt', 'new.txt', editor, () => {});
-        expect(execSync).toHaveBeenCalledTimes(1);
+        // spawnSync SHOULD be called
+        expect(spawnSync).toHaveBeenCalledTimes(1);
         const diffCommand = getDiffCommand('old.txt', 'new.txt', editor)!;
-        const expectedCommand = `${diffCommand.command} ${diffCommand.args.join(
-          ' ',
-        )}`;
-        expect(execSync).toHaveBeenCalledWith(expectedCommand, {
-          stdio: 'inherit',
-          encoding: 'utf8',
-        });
+        expect(spawnSync).toHaveBeenCalledWith(
+          diffCommand.command,
+          diffCommand.args,
+          {
+            stdio: 'inherit',
+            encoding: 'utf8',
+          }
+        );
       });
     }
 
@@ -424,21 +423,21 @@ describe('editor utils', () => {
     });
 
     describe('onEditorClose callback', () => {
-      it('should call onEditorClose for execSync editors', async () => {
-        (execSync as Mock).mockReturnValue(Buffer.from(`/usr/bin/`));
+      it('should call onEditorClose for terminal editors (spawnSync)', async () => {
+        (spawnSync as Mock).mockReturnValue({});
         const onEditorClose = vi.fn();
         await openDiff('old.txt', 'new.txt', 'vim', onEditorClose);
-        expect(execSync).toHaveBeenCalledTimes(1);
+        expect(spawnSync).toHaveBeenCalledTimes(1);
         expect(onEditorClose).toHaveBeenCalledTimes(1);
       });
 
-      it('should call onEditorClose for execSync editors when an error is thrown', async () => {
-        (execSync as Mock).mockImplementation(() => {
+      it('should call onEditorClose for terminal editors when an error is thrown', async () => {
+        (spawnSync as Mock).mockImplementation(() => {
           throw new Error('test error');
         });
         const onEditorClose = vi.fn();
         openDiff('old.txt', 'new.txt', 'vim', onEditorClose);
-        expect(execSync).toHaveBeenCalledTimes(1);
+        expect(spawnSync).toHaveBeenCalledTimes(1);
         expect(onEditorClose).toHaveBeenCalledTimes(1);
       });
 

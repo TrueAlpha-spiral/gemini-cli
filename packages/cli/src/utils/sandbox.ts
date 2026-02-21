@@ -745,10 +745,39 @@ export async function start_sandbox(
 
     if (proxyCommand) {
       // run proxyCommand in its own container
-      const proxyContainerCommand = `${config.command} run --rm --init ${userFlag} --name ${SANDBOX_PROXY_NAME} --network ${SANDBOX_PROXY_NAME} -p 8877:8877 -v ${process.cwd()}:${workdir} --workdir ${workdir} ${image} ${proxyCommand}`;
-      proxyProcess = spawn(proxyContainerCommand, {
+      const proxyArgs = ['run', '--rm', '--init'];
+      if (userFlag) {
+        // userFlag is like "--user uid:gid" or "--user root", parse it
+        const parsedUserFlag = parse(userFlag).filter(
+          (arg): arg is string => typeof arg === 'string',
+        );
+        proxyArgs.push(...parsedUserFlag);
+      }
+      proxyArgs.push(
+        '--name',
+        SANDBOX_PROXY_NAME,
+        '--network',
+        SANDBOX_PROXY_NAME,
+        '-p',
+        '8877:8877',
+        '-v',
+        `${process.cwd()}:${workdir}`,
+        '--workdir',
+        workdir,
+        image,
+      );
+
+      // Parse proxyCommand to split arguments correctly, filtering out non-string args
+      const parsedProxyCommand = parse(proxyCommand).filter(
+        (arg): arg is string => typeof arg === 'string',
+      );
+      proxyArgs.push(...parsedProxyCommand);
+
+      // Reconstruct command string for logging
+      const proxyContainerCommand = `${config.command} ${proxyArgs.join(' ')}`;
+
+      proxyProcess = spawn(config.command, proxyArgs, {
         stdio: ['ignore', 'pipe', 'pipe'],
-        shell: true,
         detached: true,
       });
       // install handlers to stop proxy on exit/signal

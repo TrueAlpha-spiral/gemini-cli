@@ -1,6 +1,6 @@
 
-import { validateSovereignAction, SovereignViolationError } from '../packages/core/src/governance/sovereign-leader.ts';
-import { SovereignAction } from '../packages/core/src/governance/types.ts';
+import { validateSovereignAction, SovereignViolationError } from '../packages/core/src/governance/sovereign-leader.js';
+import { SovereignAction } from '../packages/core/src/governance/types.js';
 
 console.log('=== VERIFYING MECHANICAL CONSCIENCE ===');
 

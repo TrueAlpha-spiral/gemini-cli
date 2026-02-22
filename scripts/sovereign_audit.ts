@@ -1,5 +1,5 @@
 
-import { SovereignProof, SovereignVerification } from '../packages/core/src/governance/types.ts';
+import { SovereignProof, SovereignVerification } from '../packages/core/src/governance/types.js';
 
 // Audit Script for Additional TAS_DNA Markers
 

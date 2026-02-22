@@ -26,13 +26,13 @@ vi.mock('../contexts/VimModeContext.js', () => ({
 
 // Test constants
 const TEST_SEQUENCES = {
-  ESCAPE: { sequence: '\u001b', name: 'escape' },
+  ESCAPE: { sequence: '\u001b', name: 'escape' } as any,
   LEFT: { sequence: 'h' },
   RIGHT: { sequence: 'l' },
   UP: { sequence: 'k' },
   DOWN: { sequence: 'j' },
   INSERT: { sequence: 'i' },
-  APPEND: { sequence: 'a' },
+  APPEND: { sequence: 'a' } as any,
   DELETE_CHAR: { sequence: 'x' },
   DELETE: { sequence: 'd' },
   CHANGE: { sequence: 'c' },
@@ -42,7 +42,7 @@ const TEST_SEQUENCES = {
   LINE_START: { sequence: '0' },
   LINE_END: { sequence: '$' },
   REPEAT: { sequence: '.' },
-} as const;
+}
 
 describe('useVim hook', () => {
   let mockBuffer: Partial<TextBuffer>;
@@ -70,11 +70,11 @@ describe('useVim hook', () => {
         if (direction === 'left') {
           col = Math.max(0, col - 1);
         } else if (direction === 'right') {
-          col = Math.min(line.length, col + 1);
+          col = Math.min(_line.length, col + 1);
         } else if (direction === 'home') {
           col = 0;
         } else if (direction === 'end') {
-          col = line.length;
+          col = _line.length;
         }
         cursorState.pos = [row, col];
       }),
@@ -151,7 +151,7 @@ describe('useVim hook', () => {
     };
   }) => {
     act(() => {
-      result.current.handleInput({ sequence: '\u001b', name: 'escape' });
+      result.current.handleInput({ sequence: '\u001b', name: 'escape' } as any);
     });
   };
 
@@ -176,7 +176,7 @@ describe('useVim hook', () => {
       const { result } = renderVimHook();
 
       act(() => {
-        result.current.handleInput(TEST_SEQUENCES.INSERT);
+        result.current.handleInput(TEST_SEQUENCES.INSERT as any);
       });
 
       expect(result.current.mode).toBe('INSERT');
@@ -187,7 +187,7 @@ describe('useVim hook', () => {
       const { result } = renderVimHook();
 
       act(() => {
-        result.current.handleInput(TEST_SEQUENCES.INSERT);
+        result.current.handleInput(TEST_SEQUENCES.INSERT as any);
       });
       expect(result.current.mode).toBe('INSERT');
 
@@ -232,7 +232,7 @@ describe('useVim hook', () => {
       const { result } = renderVimHook();
 
       act(() => {
-        result.current.handleInput({ sequence: 'l' });
+        result.current.handleInput({ sequence: 'l' } as any);
       });
 
       expect(mockBuffer.vimMoveRight).toHaveBeenCalledWith(1);
@@ -243,7 +243,7 @@ describe('useVim hook', () => {
       const { result } = renderVimHook(testBuffer);
 
       act(() => {
-        result.current.handleInput({ sequence: 'j' });
+        result.current.handleInput({ sequence: 'j' } as any);
       });
 
       expect(testBuffer.vimMoveDown).toHaveBeenCalledWith(1);
@@ -254,7 +254,7 @@ describe('useVim hook', () => {
       const { result } = renderVimHook(testBuffer);
 
       act(() => {
-        result.current.handleInput({ sequence: 'k' });
+        result.current.handleInput({ sequence: 'k' } as any);
       });
 
       expect(testBuffer.vimMoveUp).toHaveBeenCalledWith(1);
@@ -286,7 +286,7 @@ describe('useVim hook', () => {
       const { result } = renderVimHook();
 
       act(() => {
-        result.current.handleInput({ sequence: 'a' });
+        result.current.handleInput({ sequence: 'a' } as any);
       });
 
       expect(mockBuffer.vimAppendAtCursor).toHaveBeenCalled();
@@ -682,7 +682,7 @@ describe('useVim hook', () => {
       const { result } = renderVimHook(testBuffer);
 
       act(() => {
-        result.current.handleInput({ sequence: 'a' });
+        result.current.handleInput({ sequence: 'a' } as any);
       });
       expect(result.current.mode).toBe('INSERT');
       expect(testBuffer.cursor).toEqual([0, 11]);
@@ -742,7 +742,7 @@ describe('useVim hook', () => {
       });
 
       act(() => {
-        result.current.handleInput(TEST_SEQUENCES.WORD_FORWARD);
+        result.current.handleInput(TEST_SEQUENCES.WORD_FORWARD as any);
       });
 
       expect(testBuffer.vimMoveWordForward).toHaveBeenCalledWith(3);
@@ -775,7 +775,8 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
+      viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -798,7 +799,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -821,7 +822,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1204,7 +1205,7 @@ describe('useVim hook', () => {
 
         // Press escape to clear pending state
         act(() => {
-          result.current.handleInput({ name: 'escape' });
+          result.current.handleInput({ name: 'escape' } as any);
         });
 
         // Now 'w' should just move cursor, not delete
@@ -1223,7 +1224,7 @@ describe('useVim hook', () => {
         mockVimContext.vimMode = 'NORMAL';
         const { result } = renderVimHook();
 
-        const handled = result.current.handleInput({ name: 'escape' });
+        const handled = result.current.handleInput({ name: 'escape' } as any);
 
         expect(handled).toBe(false);
       });
@@ -1238,7 +1239,7 @@ describe('useVim hook', () => {
 
         let handled: boolean | undefined;
         act(() => {
-          handled = result.current.handleInput({ name: 'escape' });
+          handled = result.current.handleInput({ name: 'escape' } as any);
         });
 
         expect(handled).toBe(true);
@@ -1295,7 +1296,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1318,7 +1319,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1343,7 +1344,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1366,7 +1367,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1391,7 +1392,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1414,7 +1415,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1439,7 +1440,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1462,7 +1463,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1487,7 +1488,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1512,7 +1513,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1536,7 +1537,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1558,7 +1559,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1581,7 +1582,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1606,7 +1607,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1628,7 +1629,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1652,7 +1653,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {
@@ -1674,7 +1675,7 @@ describe('useVim hook', () => {
           undoStack: [],
           redoStack: [],
           clipboard: null,
-          selectionAnchor: null,
+          selectionAnchor: null, viewportWidth: 80,
         };
 
         const result = textBufferReducer(initialState, {

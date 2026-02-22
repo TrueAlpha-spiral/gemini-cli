@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseAndFormatApiError } from './errorParsing.js';
+import { parseAndFormatApiError, StructuredError } from './errorParsing.js';
 import {
   AuthType,
   UserTierId,

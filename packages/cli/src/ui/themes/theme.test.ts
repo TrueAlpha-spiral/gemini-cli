@@ -82,7 +82,7 @@ describe('themeManager.loadCustomThemes', () => {
 
   it('should use values from DEFAULT_THEME when DiffAdded and DiffRemoved are not provided', () => {
     const { darkTheme } = themeModule;
-    const legacyTheme: Partial<CustomTheme> = { ...baseTheme };
+    const legacyTheme: any = { ...baseTheme };
     delete legacyTheme.DiffAdded;
     delete legacyTheme.DiffRemoved;
 

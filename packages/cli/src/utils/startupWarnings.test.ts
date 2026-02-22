@@ -11,7 +11,7 @@ import { getErrorMessage } from '@google/gemini-cli-core';
 
 vi.mock('fs/promises');
 vi.mock('@google/gemini-cli-core', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<typeof import('@google/gemini-cli-core')>();
   return {
     ...actual,
     getErrorMessage: vi.fn(),

@@ -88,4 +88,27 @@ describe('PersistentRootKernel', () => {
        expect(result.type).toBe('verified_output');
     }
   });
+
+  it('should log receipts to the Immutable Truth Ledger', async () => {
+    const prompt = 'Ledger test prompt';
+    await kernel.evaluate_cognitive_stream(prompt);
+
+    const ledger = kernel.getLedger();
+    expect(ledger.length).toBeGreaterThan(0);
+
+    const receipt = ledger.find(item => 'form_hash' in item);
+    expect(receipt).toBeDefined();
+    if (receipt && 'form_hash' in receipt) {
+        expect(receipt.function_score).toBeGreaterThan(0.9);
+    }
+  });
+
+  it('should log refusals (Negative Proofs) to the ITL', async () => {
+    process.env.TAS_HARDWARE_ANCHOR = 'OFFLINE';
+    await kernel.evaluate_cognitive_stream('Refusal test');
+
+    const ledger = kernel.getLedger();
+    const refusal = ledger.find(item => 'reason' in item && item.reason.includes('Hardware Anchor'));
+    expect(refusal).toBeDefined();
+  });
 });

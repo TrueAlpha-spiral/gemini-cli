@@ -10,6 +10,7 @@ import { SovereignAction, SovereignProof, SovereignVerification } from './types.
 import { CircuitPublicInputs, CircuitPrivateInputs, SnarkProof, ZkProver, SimulatedZkProver } from './zk-snark.js';
 import { PerspectiveIntelligenceEngine } from './perspective-intelligence.js';
 import { RecursiveRuntime } from './recursive-runtime.js';
+import { ImmutableTruthLedger } from './immutable-truth-ledger.js';
 
 // ---- Types & Interfaces (Translating Swift Enums/Classes) ----
 
@@ -95,9 +96,11 @@ class SecureEnclave {
  */
 class ZK_LedgerClient {
   private prover: ZkProver;
+  private itl: ImmutableTruthLedger;
 
   constructor() {
     this.prover = new SimulatedZkProver();
+    this.itl = new ImmutableTruthLedger();
   }
 
   async broadcast_gene_proof(gene: VerifiedGene): Promise<void> {
@@ -117,13 +120,22 @@ class ZK_LedgerClient {
     try {
       const proof = await this.prover.generateProof(publicInputs, privateInputs);
 
-      // In a real system, this would post the proof to the ITL.
-      // console.log(`[ZK_Ledger] Broadcasted Proof:`, proof);
+      // Commit Receipt to ITL
+      await this.itl.commitReceipt(gene, proof);
 
     } catch (e) {
       console.error('[ZK_Ledger] Proof generation failed:', e);
       throw new PhoenixError('ZK Proof Generation Failed');
     }
+  }
+
+  async log_refusal(reason: string, delta: number = 0): Promise<void> {
+      await this.itl.commitRefusal(reason, delta);
+  }
+
+  // Helper for testing
+  getLedger() {
+      return this.itl.getLedger();
   }
 }
 
@@ -225,7 +237,9 @@ export class PersistentRootKernel {
   async evaluate_cognitive_stream(raw_prompt: string): Promise<InterceptResult> {
     // 1. Enforce Prime Invariant (I_0) via Physical Hardware
     if (process.env.TAS_HARDWARE_ANCHOR === 'OFFLINE') {
-        return { type: 'silence', reason: 'Hardware Anchor Offline. Cannot verify I_0.' };
+        const reason = 'Hardware Anchor Offline. Cannot verify I_0.';
+        await this.itlClient.log_refusal(reason);
+        return { type: 'silence', reason };
     }
 
     // 2. Extract Cryptographic Human Seed from Secure Enclave
@@ -249,13 +263,21 @@ export class PersistentRootKernel {
       return { type: 'verified_output', content: verifiedGene.content };
 
     } catch (error: any) {
+      // Record Negative Proof
       if (error instanceof PhoenixError) {
         // Refusal Integrity (R_i) successfully executed
+        await this.itlClient.log_refusal(`Phoenix Protocol Activated: ${error.message}`);
         return { type: 'silence', reason: `Phoenix Protocol Activated: ${error.message}` };
       } else {
         // Unhandled entropy results in immediate collapse
+        await this.itlClient.log_refusal('Unrecoverable semantic turbulence');
         return { type: 'silence', reason: 'Unrecoverable semantic turbulence.' };
       }
     }
+  }
+
+  // Expose ledger for testing
+  getLedger() {
+      return this.itlClient.getLedger();
   }
 }

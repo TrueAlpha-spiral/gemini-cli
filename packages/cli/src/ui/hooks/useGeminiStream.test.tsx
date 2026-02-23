@@ -52,6 +52,15 @@ const MockedUserPromptEvent = vi.hoisted(() =>
   vi.fn().mockImplementation(() => {}),
 );
 
+const MockedPersistentRootKernel = vi.hoisted(() =>
+  vi.fn().mockImplementation(() => ({
+    evaluate_cognitive_stream: vi.fn().mockResolvedValue({
+      type: 'verified_output',
+      content: 'verified content',
+    }),
+  })),
+);
+
 vi.mock('@google/gemini-cli-core', async (importOriginal) => {
   const actualCoreModule = (await importOriginal()) as any;
   return {
@@ -59,6 +68,7 @@ vi.mock('@google/gemini-cli-core', async (importOriginal) => {
     GitService: vi.fn(),
     GeminiClient: MockedGeminiClientClass,
     UserPromptEvent: MockedUserPromptEvent,
+    PersistentRootKernel: MockedPersistentRootKernel,
   };
 });
 

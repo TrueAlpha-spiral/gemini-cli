@@ -26,6 +26,7 @@ import {
   UnauthorizedError,
   UserPromptEvent,
   DEFAULT_GEMINI_FLASH_MODEL,
+  PersistentRootKernel,
 } from '@google/gemini-cli-core';
 import { type Part, type PartListUnion, FinishReason } from '@google/genai';
 import {
@@ -112,6 +113,8 @@ export const useGeminiStream = (
     }
     return new GitService(config.getProjectRoot());
   }, [config]);
+
+  const kernel = useMemo(() => new PersistentRootKernel(), []);
 
   const [toolCalls, scheduleToolCalls, markToolsAsSubmitted] =
     useReactToolScheduler(
@@ -623,6 +626,24 @@ export const useGeminiStream = (
       abortControllerRef.current = new AbortController();
       const abortSignal = abortControllerRef.current.signal;
       turnCancelledRef.current = false;
+
+      // TAS Kernel Check
+      if (typeof query === 'string') {
+        const kernelResult = await kernel.evaluate_cognitive_stream(query);
+        if (kernelResult.type === 'silence') {
+          addItem(
+            {
+              type: MessageType.ERROR,
+              text: `[KERNEL INTERCEPT] ${kernelResult.reason}`,
+            },
+            userMessageTimestamp,
+          );
+          return;
+        }
+        // If verified, we proceed with the potentially verified content
+        // In this implementation, we trust the kernel's verification but continue with original query
+        // unless we want to replace it with kernelResult.content
+      }
 
       if (!prompt_id) {
         prompt_id = config.getSessionId() + '########' + getPromptCount();

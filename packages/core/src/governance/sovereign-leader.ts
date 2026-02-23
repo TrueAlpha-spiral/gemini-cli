@@ -7,8 +7,11 @@
 import { SovereignAction } from './types.js';
 
 export class SovereignViolationError extends Error {
-  constructor(message: string, public readonly code: string) {
+  public readonly code: string;
+
+  constructor(message: string, code: string) {
     super(message);
+    this.code = code;
     this.name = 'SovereignViolationError';
   }
 }
@@ -18,6 +21,11 @@ export class SovereignViolationError extends Error {
  * "LEADERSHIP_IS_REVOCABLE_BOUNDARY_AUTHORITY"
  *
  * Authority = revocation + anchoring.
+ *
+ * Implements the "Refusal Principle" / "Sincerity as Mechanical Law":
+ * If the evidence manifold doesn't close to a conclusion (missing anchor/revocation),
+ * the system emits a refusal (throws Error).
+ * "Hallucination = coherence violation = death of the process."
  *
  * @param action The action to validate.
  * @throws SovereignViolationError if the action is not compliant.

@@ -7,10 +7,14 @@ import { promisify } from 'util';
 
 // Mock factories need to be hoisted and return the mock structure
 vi.mock('node:child_process', () => {
-    return {
+    const mockCp = {
         spawn: vi.fn(),
         exec: vi.fn(),
         execSync: vi.fn(),
+    };
+    return {
+        ...mockCp,
+        default: mockCp,
     };
 });
 

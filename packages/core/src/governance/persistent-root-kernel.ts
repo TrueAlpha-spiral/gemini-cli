@@ -7,6 +7,7 @@
 import * as crypto from 'node:crypto';
 import { validateSovereignAction, SovereignViolationError } from './sovereign-leader.js';
 import { SovereignAction, SovereignProof, SovereignVerification } from './types.js';
+import { CircuitPublicInputs, CircuitPrivateInputs, SnarkProof, ZkProver, SimulatedZkProver } from './zk-snark.js';
 
 // ---- Types & Interfaces (Translating Swift Enums/Classes) ----
 
@@ -23,6 +24,9 @@ export type InterceptResult =
 export interface HumanSeed {
   api_key: string;
   genesis_hash: string;
+  // Encapsulated private data for ZK proof generation (simulated)
+  _private_sk?: string;
+  _private_sig?: string;
 }
 
 /**
@@ -31,6 +35,9 @@ export interface HumanSeed {
 export interface VerifiedGene {
   content: string;
   signature: string;
+  genesis_hash: string;
+  raw_prompt: string;
+  human_seed: HumanSeed;
 }
 
 /**
@@ -62,7 +69,7 @@ class SecureEnclave {
   /**
    * Signs the payload using the private key.
    */
-  sign(payload: string): { publicKey: string; genesisChainHash: string } {
+  sign(payload: string): { publicKey: string; genesisChainHash: string; signature: string; privateKey: string } {
     const signer = crypto.createSign('SHA256');
     signer.update(payload);
     const signature = signer.sign(this.keyPair.privateKey, 'base64');
@@ -75,6 +82,8 @@ class SecureEnclave {
     return {
       publicKey: this.keyPair.publicKey.export({ type: 'spki', format: 'pem' }).toString(),
       genesisChainHash,
+      signature,
+      privateKey: this.keyPair.privateKey.export({ type: 'sec1', format: 'pem' }).toString()
     };
   }
 }
@@ -83,10 +92,36 @@ class SecureEnclave {
  * Simulates the ZK_LedgerClient (Zero-Knowledge Proof broadcaster).
  */
 class ZK_LedgerClient {
-  broadcast_gene_proof(gene: VerifiedGene): void {
-    // In a real system, this would post a ZK-SNARK to a blockchain.
-    // Here, we just log the broadcast.
-    // console.log(`[ZK_Ledger] Broadcasting proof for gene: ${gene.signature.substring(0, 8)}...`);
+  private prover: ZkProver;
+
+  constructor() {
+    this.prover = new SimulatedZkProver();
+  }
+
+  async broadcast_gene_proof(gene: VerifiedGene): Promise<void> {
+    // Construct Circuit Inputs
+    const publicInputs: CircuitPublicInputs = {
+      genesis_hash: gene.human_seed.genesis_hash,
+      gene_hash: gene.signature, // Using signature as the gene hash for simulation
+    };
+
+    const privateInputs: CircuitPrivateInputs = {
+      human_seed_sk: gene.human_seed._private_sk || '',
+      raw_prompt: gene.raw_prompt,
+      biometric_sig: gene.human_seed._private_sig || '',
+    };
+
+    // Generate ZK Proof
+    try {
+      const proof = await this.prover.generateProof(publicInputs, privateInputs);
+
+      // In a real system, this would post the proof to the ITL.
+      // console.log(`[ZK_Ledger] Broadcasted Proof:`, proof);
+
+    } catch (e) {
+      console.error('[ZK_Ledger] Proof generation failed:', e);
+      throw new PhoenixError('ZK Proof Generation Failed');
+    }
   }
 }
 
@@ -130,6 +165,9 @@ class TriadicKnowledgeEngine {
     return {
       content: raw_input,
       signature: crypto.createHash('sha256').update(raw_input + human_seed.genesis_hash).digest('hex'),
+      genesis_hash: human_seed.genesis_hash,
+      raw_prompt: raw_input,
+      human_seed: human_seed,
     };
   }
 }
@@ -156,10 +194,6 @@ export class PersistentRootKernel {
    */
   async evaluate_cognitive_stream(raw_prompt: string): Promise<InterceptResult> {
     // 1. Enforce Prime Invariant (I_0) via Physical Hardware
-    // Simulate LAContext (Biometrics)
-    // In a CLI environment, we can't do biometrics, but we can check for an environment variable
-    // or assume "Hardware Anchor" is present if the kernel is running.
-    // For simulation purposes, let's say if TAS_HARDWARE_ANCHOR is explicitly 'OFFLINE', we fail.
     if (process.env.TAS_HARDWARE_ANCHOR === 'OFFLINE') {
         return { type: 'silence', reason: 'Hardware Anchor Offline. Cannot verify I_0.' };
     }
@@ -169,6 +203,9 @@ export class PersistentRootKernel {
     const humanSeed: HumanSeed = {
       api_key: biometricSignature.publicKey,
       genesis_hash: biometricSignature.genesisChainHash,
+      // Store private witness data (hidden from UI, used for ZK proof)
+      _private_sk: biometricSignature.privateKey,
+      _private_sig: biometricSignature.signature,
     };
 
     // 3. Route through the Logarithmic Loom
@@ -176,7 +213,7 @@ export class PersistentRootKernel {
       const verifiedGene = this.loom.execute_loom(raw_prompt, humanSeed);
 
       // 4. Asynchronous ZK-Proof Sync to Global ITL
-      this.itlClient.broadcast_gene_proof(verifiedGene);
+      await this.itlClient.broadcast_gene_proof(verifiedGene);
 
       // 5. Release verified semantic state to UI
       return { type: 'verified_output', content: verifiedGene.content };

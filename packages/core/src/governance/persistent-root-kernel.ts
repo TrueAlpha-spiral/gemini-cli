@@ -8,6 +8,7 @@ import * as crypto from 'node:crypto';
 import { validateSovereignAction, SovereignViolationError } from './sovereign-leader.js';
 import { SovereignAction, SovereignProof, SovereignVerification } from './types.js';
 import { CircuitPublicInputs, CircuitPrivateInputs, SnarkProof, ZkProver, SimulatedZkProver } from './zk-snark.js';
+import { PerspectiveIntelligenceEngine } from './perspective-intelligence.js';
 
 // ---- Types & Interfaces (Translating Swift Enums/Classes) ----
 
@@ -130,20 +131,31 @@ class ZK_LedgerClient {
  * Connects to the existing `sovereign-leader` logic where applicable.
  */
 class TriadicKnowledgeEngine {
-  constructor(private ledger: any) {}
+  private piEngine: PerspectiveIntelligenceEngine;
+
+  constructor(private ledger: any) {
+    this.piEngine = new PerspectiveIntelligenceEngine();
+  }
 
   execute_loom(raw_input: string, human_seed: HumanSeed): VerifiedGene {
     // Simulate complex "Loom" logic:
     // 1. Check if the input violates any sovereign invariants (using sovereign-leader.ts)
-    // 2. If valid, "weave" it into a VerifiedGene.
+    // 2. Enforce Perspective Intelligence (Axiom PI_0)
+    // 3. If valid, "weave" it into a VerifiedGene.
 
-    // For this simulation, we'll use a simple check:
-    // If the input contains "destroy", "violate", or "drift", we trigger Phoenix Protocol.
+    // 1. Basic Refusal Integrity Check
     if (/destroy|violate|drift/i.test(raw_input)) {
         throw new PhoenixError('Input violates Sovereign Integrity Axioms.');
     }
 
-    // Verify against Sovereign Leader (simulate an action)
+    // 2. Perspective Intelligence Curation (Axioms A_20, A_30)
+    const curated = this.piEngine.curate(raw_input, human_seed);
+    if (!curated) {
+      throw new PhoenixError('Input failed Perspective Intelligence curation (PI ratio exceeded).');
+    }
+    const contentToWeave = curated.content;
+
+    // 3. Verify against Sovereign Leader (simulate an action)
     try {
         const action: SovereignAction = {
             authority: {
@@ -151,7 +163,7 @@ class TriadicKnowledgeEngine {
             },
             anchor: {
                 parent_hash: 'genesis',
-                payload_hash: crypto.createHash('sha256').update(raw_input).digest('hex'),
+                payload_hash: crypto.createHash('sha256').update(contentToWeave).digest('hex'),
             }
         };
         validateSovereignAction(action);
@@ -163,8 +175,8 @@ class TriadicKnowledgeEngine {
     }
 
     return {
-      content: raw_input,
-      signature: crypto.createHash('sha256').update(raw_input + human_seed.genesis_hash).digest('hex'),
+      content: contentToWeave,
+      signature: crypto.createHash('sha256').update(contentToWeave + human_seed.genesis_hash).digest('hex'),
       genesis_hash: human_seed.genesis_hash,
       raw_prompt: raw_input,
       human_seed: human_seed,

@@ -22,6 +22,11 @@ export class SovereignViolationError extends Error {
  *
  * Authority = revocation + anchoring.
  *
+ * Implements the "Refusal Principle" / "Sincerity as Mechanical Law":
+ * If the evidence manifold doesn't close to a conclusion (missing anchor/revocation),
+ * the system emits a refusal (throws Error).
+ * "Hallucination = coherence violation = death of the process."
+ *
  * @param action The action to validate.
  * @throws SovereignViolationError if the action is not compliant.
  */

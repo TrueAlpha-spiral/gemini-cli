@@ -177,4 +177,10 @@ export interface SlashCommand {
   ) => Promise<string[]>;
 
   subCommands?: SlashCommand[];
+
+  /**
+   * A pre-computed map of subcommand names and aliases to their corresponding
+   * SlashCommand objects. This enables O(1) lookup during command processing.
+   */
+  subCommandMap?: Map<string, SlashCommand>;
 }

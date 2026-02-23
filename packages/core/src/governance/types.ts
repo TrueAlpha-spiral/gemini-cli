@@ -20,6 +20,9 @@ export interface SovereignAuthority {
 
 /**
  * Represents the anchor binding the action to an immutable history.
+ *
+ * Enforces the Semantic Continuity Law:
+ * "Each broadcast inherits from its frame of truth; no act is detached from its history."
  */
 export interface SovereignAnchor {
   parent_hash: string;

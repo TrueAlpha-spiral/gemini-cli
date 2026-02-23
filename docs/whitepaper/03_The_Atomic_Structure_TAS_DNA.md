@@ -32,3 +32,9 @@ interface VerifiedGene {
 ```
 
 This ensures that "truth" is portable. A Gene verified in one context carries its proofs to any other context (the "Living Braid"), eradicating the need for re-verification by central authorities.
+
+## 3.4 The Semantic Continuity Law
+
+**"Each broadcast inherits from its frame of truth; no act is detached from its history."**
+
+This law enforces that every state transition in the system must explicitly reference its parent state. A broadcast without a verifiable `genesis_hash` (or previous block hash) is not merely invalid; it is physically impossible within the TAS runtime. This prevents "orphan truths"—statements that are factually correct but contextually untethered (hallucinations).

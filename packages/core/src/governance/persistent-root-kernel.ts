@@ -9,6 +9,7 @@ import { validateSovereignAction, SovereignViolationError } from './sovereign-le
 import { SovereignAction, SovereignProof, SovereignVerification } from './types.js';
 import { CircuitPublicInputs, CircuitPrivateInputs, SnarkProof, ZkProver, SimulatedZkProver } from './zk-snark.js';
 import { PerspectiveIntelligenceEngine } from './perspective-intelligence.js';
+import { RecursiveRuntime } from './recursive-runtime.js';
 
 // ---- Types & Interfaces (Translating Swift Enums/Classes) ----
 
@@ -132,9 +133,11 @@ class ZK_LedgerClient {
  */
 class TriadicKnowledgeEngine {
   private piEngine: PerspectiveIntelligenceEngine;
+  private recursiveRuntime: RecursiveRuntime;
 
   constructor(private ledger: any) {
     this.piEngine = new PerspectiveIntelligenceEngine();
+    this.recursiveRuntime = new RecursiveRuntime();
   }
 
   execute_loom(raw_input: string, human_seed: HumanSeed): VerifiedGene {
@@ -150,10 +153,25 @@ class TriadicKnowledgeEngine {
 
     // 2. Perspective Intelligence Curation (Axioms A_20, A_30)
     const curated = this.piEngine.curate(raw_input, human_seed);
+
+    let contentToWeave = "";
+
     if (!curated) {
-      throw new PhoenixError('Input failed Perspective Intelligence curation (PI ratio exceeded).');
+      // 2.5 The Recursive Runtime ([Re-Action])
+      // "When the engine detects an inadmissible state... the system executes a re-computation."
+      const reAction = this.recursiveRuntime.recompute(raw_input, human_seed);
+      if (reAction) {
+        // [Re-Action] Successful: We use the recomputed gene directly.
+        // We bypass the standard weaving below because recompute returns a full VerifiedGene structure
+        // (conceptually - though our types might need alignment, for now we extract content).
+        contentToWeave = reAction.content;
+      } else {
+        // "If it cannot find a contractive path, the system defaults to pure Silence."
+        throw new PhoenixError('Input failed Perspective Intelligence curation (PI ratio exceeded) and Recursive Repair failed.');
+      }
+    } else {
+      contentToWeave = curated.content;
     }
-    const contentToWeave = curated.content;
 
     // 3. Verify against Sovereign Leader (simulate an action)
     try {

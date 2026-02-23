@@ -57,4 +57,35 @@ describe('PersistentRootKernel', () => {
     const result = await kernel.evaluate_cognitive_stream(prompt);
     expect(result.type).toBe('verified_output');
   });
+
+  it('should trigger Recursive Repair [Re-Action] when initial PI check fails', async () => {
+    // Simulate a high-entropy input that fails the initial PI check (MAX_PI = 10.0)
+    // d = 256.0. We need C > 2560.
+    // Since our mock banach.calculateMetric depends on length * entropy,
+    // we need a long string with high unique char count.
+
+    // Construct a "turbulent" string: long length, high entropy density.
+    // 5000 chars * (128/128) = 5000 metric > 2560.
+    // This should trigger the initial failure.
+    // However, the RecursiveRuntime will attempt to contract it.
+    // 5000 -> 4500 -> ... until < target.
+    // If it succeeds, we get a verified output that is a contracted version of the input.
+
+    const turbulence = Array.from({ length: 5000 }, (_, i) => String.fromCharCode((i % 94) + 33)).join('');
+
+    const result = await kernel.evaluate_cognitive_stream(turbulence);
+
+    if (result.type === 'verified_output') {
+       // It succeeded via repair!
+       expect(result.content.length).toBeLessThan(turbulence.length);
+       expect(result.content.length).toBeGreaterThan(0);
+    } else {
+       // If it failed completely, verify the reason contains "Recursive Repair failed"
+       // But our goal is to prove it *can* repair.
+       // The simulated banach apply() works by slicing 10% per step up to 100 steps.
+       // 5000 * 0.9^n < target?
+       // It should eventually converge.
+       expect(result.type).toBe('verified_output');
+    }
+  });
 });

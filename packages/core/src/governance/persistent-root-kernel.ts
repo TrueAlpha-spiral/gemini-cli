@@ -11,6 +11,7 @@ import { CircuitPublicInputs, CircuitPrivateInputs, SnarkProof, ZkProver, Simula
 import { PerspectiveIntelligenceEngine } from './perspective-intelligence.js';
 import { RecursiveRuntime } from './recursive-runtime.js';
 import { ImmutableTruthLedger } from './immutable-truth-ledger.js';
+import { TASKMicroKernel } from './tas-k-micro-kernel.js';
 
 // ---- Types & Interfaces (Translating Swift Enums/Classes) ----
 
@@ -158,9 +159,9 @@ class TriadicKnowledgeEngine {
     // 2. Enforce Perspective Intelligence (Axiom PI_0)
     // 3. If valid, "weave" it into a VerifiedGene.
 
-    // 1. Basic Refusal Integrity Check
-    if (/destroy|violate|drift/i.test(raw_input)) {
-        throw new PhoenixError('Input violates Sovereign Integrity Axioms.');
+    // 1. TAS_K Micro-Kernel Check (High-Velocity Gate)
+    if (!TASKMicroKernel.verify(raw_input)) {
+        throw new PhoenixError('Input violates Sovereign Integrity Axioms (TAS_K Rejection).');
     }
 
     // 2. Perspective Intelligence Curation (Axioms A_20, A_30)

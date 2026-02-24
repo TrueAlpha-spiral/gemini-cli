@@ -31,18 +31,20 @@ const getSavedChatTags = async (
     const file_head = 'checkpoint-';
     const file_tail = '.json';
     const files = await fsPromises.readdir(geminiDir);
-    const chatDetails: Array<{ name: string; mtime: Date }> = [];
-
-    for (const file of files) {
-      if (file.startsWith(file_head) && file.endsWith(file_tail)) {
-        const filePath = path.join(geminiDir, file);
-        const stats = await fsPromises.stat(filePath);
-        chatDetails.push({
-          name: file.slice(file_head.length, -file_tail.length),
-          mtime: stats.mtime,
-        });
-      }
-    }
+    const chatDetails = await Promise.all(
+      files
+        .filter(
+          (file) => file.startsWith(file_head) && file.endsWith(file_tail),
+        )
+        .map(async (file) => {
+          const filePath = path.join(geminiDir, file);
+          const stats = await fsPromises.stat(filePath);
+          return {
+            name: file.slice(file_head.length, -file_tail.length),
+            mtime: stats.mtime,
+          };
+        }),
+    );
 
     chatDetails.sort((a, b) =>
       mtSortDesc

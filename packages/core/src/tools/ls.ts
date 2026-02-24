@@ -138,22 +138,32 @@ export class LSTool extends BaseTool<LSToolParams, ToolResult> {
   }
 
   /**
-   * Checks if a filename matches any of the ignore patterns
-   * @param filename Filename to check
-   * @param patterns Array of glob patterns to check against
-   * @returns True if the filename should be ignored
+   * Compiles glob patterns into RegExp objects
+   * @param patterns Array of glob patterns
+   * @returns Array of compiled RegExp objects
    */
-  private shouldIgnore(filename: string, patterns?: string[]): boolean {
+  private compileIgnorePatterns(patterns?: string[]): RegExp[] {
     if (!patterns || patterns.length === 0) {
-      return false;
+      return [];
     }
-    for (const pattern of patterns) {
+    return patterns.map((pattern) => {
       // Convert glob pattern to RegExp
       const regexPattern = pattern
         .replace(/[.+^${}()|[\]\\]/g, '\\$&')
         .replace(/\*/g, '.*')
         .replace(/\?/g, '.');
-      const regex = new RegExp(`^${regexPattern}$`);
+      return new RegExp(`^${regexPattern}$`);
+    });
+  }
+
+  /**
+   * Checks if a filename matches any of the ignore patterns
+   * @param filename Filename to check
+   * @param regexPatterns Array of compiled RegExp patterns to check against
+   * @returns True if the filename should be ignored
+   */
+  private shouldIgnore(filename: string, regexPatterns: RegExp[]): boolean {
+    for (const regex of regexPatterns) {
       if (regex.test(filename)) {
         return true;
       }
@@ -244,8 +254,10 @@ export class LSTool extends BaseTool<LSToolParams, ToolResult> {
         };
       }
 
+      const ignorePatterns = this.compileIgnorePatterns(params.ignore);
+
       for (const file of files) {
-        if (this.shouldIgnore(file, params.ignore)) {
+        if (this.shouldIgnore(file, ignorePatterns)) {
           continue;
         }
 

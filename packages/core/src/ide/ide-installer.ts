@@ -130,9 +130,12 @@ class VsCodeInstaller implements IdeInstaller {
     }
 
     const vsixPath = vsixFiles[0];
-    const command = `"${commandPath}" --install-extension "${vsixPath}" --force`;
     try {
-      child_process.execSync(command, { stdio: 'pipe' });
+      child_process.execFileSync(
+        commandPath,
+        ['--install-extension', vsixPath, '--force'],
+        { stdio: 'pipe' },
+      );
       return {
         success: true,
         message:

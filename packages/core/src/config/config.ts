@@ -198,6 +198,7 @@ export interface ConfigParameters {
   loadMemoryFromIncludeDirectories?: boolean;
   chatCompression?: ChatCompressionSettings;
   interactive?: boolean;
+  version?: string;
 }
 
 export class Config {
@@ -262,9 +263,11 @@ export class Config {
   private readonly loadMemoryFromIncludeDirectories: boolean = false;
   private readonly chatCompression: ChatCompressionSettings | undefined;
   private readonly interactive: boolean;
+  private readonly version: string;
   private initialized: boolean = false;
 
   constructor(params: ConfigParameters) {
+    this.version = params.version ?? '1.0.0';
     this.sessionId = params.sessionId;
     this.embeddingModel =
       params.embeddingModel ?? DEFAULT_GEMINI_EMBEDDING_MODEL;
@@ -323,7 +326,7 @@ export class Config {
     this.ideMode = params.ideMode ?? false;
     this.ideClient = IdeClient.getInstance();
     if (this.ideMode && this.ideModeFeature) {
-      this.ideClient.connect();
+      this.ideClient.connect(this.version);
       logIdeConnection(this, new IdeConnectionEvent(IdeConnectionType.START));
     }
     this.loadMemoryFromIncludeDirectories =
@@ -681,7 +684,7 @@ export class Config {
   async setIdeModeAndSyncConnection(value: boolean): Promise<void> {
     this.ideMode = value;
     if (value) {
-      await this.ideClient.connect();
+      await this.ideClient.connect(this.version);
       logIdeConnection(this, new IdeConnectionEvent(IdeConnectionType.SESSION));
     } else {
       await this.ideClient.disconnect();

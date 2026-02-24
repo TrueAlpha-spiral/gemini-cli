@@ -415,6 +415,7 @@ export async function loadCliConfig(
   }
 
   const sandboxConfig = await loadSandboxConfig(settings, argv);
+  const version = await getCliVersion();
 
   return new Config({
     sessionId,
@@ -488,6 +489,7 @@ export async function loadCliConfig(
     folderTrustFeature,
     folderTrust,
     interactive,
+    version,
   });
 }
 

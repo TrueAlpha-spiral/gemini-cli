@@ -75,6 +75,27 @@ enum StreamProcessingStatus {
   Error,
 }
 
+const FINISH_REASON_MESSAGES: Record<FinishReason, string | undefined> = {
+  [FinishReason.FINISH_REASON_UNSPECIFIED]: undefined,
+  [FinishReason.STOP]: undefined,
+  [FinishReason.MAX_TOKENS]: 'Response truncated due to token limits.',
+  [FinishReason.SAFETY]: 'Response stopped due to safety reasons.',
+  [FinishReason.RECITATION]: 'Response stopped due to recitation policy.',
+  [FinishReason.LANGUAGE]: 'Response stopped due to unsupported language.',
+  [FinishReason.BLOCKLIST]: 'Response stopped due to forbidden terms.',
+  [FinishReason.PROHIBITED_CONTENT]:
+    'Response stopped due to prohibited content.',
+  [FinishReason.SPII]:
+    'Response stopped due to sensitive personally identifiable information.',
+  [FinishReason.OTHER]: 'Response stopped for other reasons.',
+  [FinishReason.MALFORMED_FUNCTION_CALL]:
+    'Response stopped due to malformed function call.',
+  [FinishReason.IMAGE_SAFETY]:
+    'Response stopped due to image safety violations.',
+  [FinishReason.UNEXPECTED_TOOL_CALL]:
+    'Response stopped due to unexpected tool call.',
+};
+
 /**
  * Manages the Gemini stream, including user input, command processing,
  * API interaction, and tool call lifecycle.
@@ -453,29 +474,7 @@ export const useGeminiStream = (
     (event: ServerGeminiFinishedEvent, userMessageTimestamp: number) => {
       const finishReason = event.value;
 
-      const finishReasonMessages: Record<FinishReason, string | undefined> = {
-        [FinishReason.FINISH_REASON_UNSPECIFIED]: undefined,
-        [FinishReason.STOP]: undefined,
-        [FinishReason.MAX_TOKENS]: 'Response truncated due to token limits.',
-        [FinishReason.SAFETY]: 'Response stopped due to safety reasons.',
-        [FinishReason.RECITATION]: 'Response stopped due to recitation policy.',
-        [FinishReason.LANGUAGE]:
-          'Response stopped due to unsupported language.',
-        [FinishReason.BLOCKLIST]: 'Response stopped due to forbidden terms.',
-        [FinishReason.PROHIBITED_CONTENT]:
-          'Response stopped due to prohibited content.',
-        [FinishReason.SPII]:
-          'Response stopped due to sensitive personally identifiable information.',
-        [FinishReason.OTHER]: 'Response stopped for other reasons.',
-        [FinishReason.MALFORMED_FUNCTION_CALL]:
-          'Response stopped due to malformed function call.',
-        [FinishReason.IMAGE_SAFETY]:
-          'Response stopped due to image safety violations.',
-        [FinishReason.UNEXPECTED_TOOL_CALL]:
-          'Response stopped due to unexpected tool call.',
-      };
-
-      const message = finishReasonMessages[finishReason];
+      const message = FINISH_REASON_MESSAGES[finishReason];
       if (message) {
         addItem(
           {

@@ -218,8 +218,15 @@ class TriadicKnowledgeEngine {
 // ---- The Kernel ----
 
 /**
- * The TAS Persistent Root Kernel.
+ * The TAS Persistent Root Kernel (TAS_K).
+ *
  * Intercepts AI interaction at the OS/App boundary to enforce sovereign integrity.
+ * Acts as the "Persistent Root Kernel" for the Sovereign Ethical Singularity (SES).
+ *
+ * Enforces:
+ * 1. The Prime Invariant (A_10)
+ * 2. The Logarithmic Loom (pi = C/d)
+ * 3. The Thermodynamics of Refusal (R_k)
  */
 export class PersistentRootKernel {
   private enclave: SecureEnclave;

@@ -485,6 +485,25 @@ describe('mcp-client', () => {
       });
     });
 
+    it('should use provided access token', async () => {
+      const transport = await createTransport(
+        'test-server',
+        {
+          httpUrl: 'http://test-server',
+        },
+        false,
+        'my-token',
+      );
+
+      expect(transport).toEqual(
+        new StreamableHTTPClientTransport(new URL('http://test-server'), {
+          requestInit: {
+            headers: { Authorization: 'Bearer my-token' },
+          },
+        }),
+      );
+    });
+
     it('should connect via command', async () => {
       const mockedTransport = vi.mocked(SdkClientStdioLib.StdioClientTransport);
 

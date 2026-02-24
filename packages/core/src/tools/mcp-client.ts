@@ -241,53 +241,25 @@ async function handleAutomaticOAuth(
 }
 
 /**
- * Create a transport with OAuth token for the given server configuration.
- *
- * @param mcpServerName The name of the MCP server
- * @param mcpServerConfig The MCP server configuration
- * @param accessToken The OAuth access token
- * @returns The transport with OAuth token, or null if creation fails
+ * Create transport options with merged headers and optional access token.
  */
-async function createTransportWithOAuth(
-  mcpServerName: string,
-  mcpServerConfig: MCPServerConfig,
-  accessToken: string,
-): Promise<StreamableHTTPClientTransport | SSEClientTransport | null> {
-  try {
-    if (mcpServerConfig.httpUrl) {
-      // Create HTTP transport with OAuth token
-      const oauthTransportOptions: StreamableHTTPClientTransportOptions = {
-        requestInit: {
-          headers: {
-            ...mcpServerConfig.headers,
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      };
-
-      return new StreamableHTTPClientTransport(
-        new URL(mcpServerConfig.httpUrl),
-        oauthTransportOptions,
-      );
-    } else if (mcpServerConfig.url) {
-      // Create SSE transport with OAuth token in Authorization header
-      return new SSEClientTransport(new URL(mcpServerConfig.url), {
-        requestInit: {
-          headers: {
-            ...mcpServerConfig.headers,
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      });
-    }
-
-    return null;
-  } catch (error) {
-    console.error(
-      `Failed to create OAuth transport for server '${mcpServerName}': ${getErrorMessage(error)}`,
-    );
-    return null;
+function createTransportOptions(
+  headers?: Record<string, string>,
+  accessToken?: string | null,
+): StreamableHTTPClientTransportOptions | SSEClientTransportOptions {
+  const finalHeaders: Record<string, string> = { ...headers };
+  if (accessToken) {
+    finalHeaders['Authorization'] = `Bearer ${accessToken}`;
   }
+
+  if (Object.keys(finalHeaders).length > 0) {
+    return {
+      requestInit: {
+        headers: finalHeaders,
+      },
+    };
+  }
+  return {};
 }
 
 /**
@@ -794,34 +766,26 @@ export async function connectToMcpServer(
 
             if (accessToken) {
               // Create transport with OAuth token
-              const oauthTransport = await createTransportWithOAuth(
+              const oauthTransport = await createTransport(
                 mcpServerName,
                 mcpServerConfig,
+                debugMode,
                 accessToken,
               );
-              if (oauthTransport) {
-                try {
-                  await mcpClient.connect(oauthTransport, {
-                    timeout:
-                      mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
-                  });
-                  // Connection successful with OAuth
-                  return mcpClient;
-                } catch (retryError) {
-                  console.error(
-                    `Failed to connect with OAuth token: ${getErrorMessage(
-                      retryError,
-                    )}`,
-                  );
-                  throw retryError;
-                }
-              } else {
+              try {
+                await mcpClient.connect(oauthTransport, {
+                  timeout:
+                    mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
+                });
+                // Connection successful with OAuth
+                return mcpClient;
+              } catch (retryError) {
                 console.error(
-                  `Failed to create OAuth transport for server '${mcpServerName}'`,
+                  `Failed to connect with OAuth token: ${getErrorMessage(
+                    retryError,
+                  )}`,
                 );
-                throw new Error(
-                  `Failed to create OAuth transport for server '${mcpServerName}'`,
-                );
+                throw retryError;
               }
             } else {
               console.error(
@@ -928,34 +892,26 @@ export async function connectToMcpServer(
                 );
                 if (accessToken) {
                   // Create transport with OAuth token
-                  const oauthTransport = await createTransportWithOAuth(
+                  const oauthTransport = await createTransport(
                     mcpServerName,
                     mcpServerConfig,
+                    debugMode,
                     accessToken,
                   );
-                  if (oauthTransport) {
-                    try {
-                      await mcpClient.connect(oauthTransport, {
-                        timeout:
-                          mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
-                      });
-                      // Connection successful with OAuth
-                      return mcpClient;
-                    } catch (retryError) {
-                      console.error(
-                        `Failed to connect with OAuth token: ${getErrorMessage(
-                          retryError,
-                        )}`,
-                      );
-                      throw retryError;
-                    }
-                  } else {
+                  try {
+                    await mcpClient.connect(oauthTransport, {
+                      timeout:
+                        mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
+                    });
+                    // Connection successful with OAuth
+                    return mcpClient;
+                  } catch (retryError) {
                     console.error(
-                      `Failed to create OAuth transport for server '${mcpServerName}'`,
+                      `Failed to connect with OAuth token: ${getErrorMessage(
+                        retryError,
+                      )}`,
                     );
-                    throw new Error(
-                      `Failed to create OAuth transport for server '${mcpServerName}'`,
-                    );
+                    throw retryError;
                   }
                 } else {
                   console.error(
@@ -1025,8 +981,10 @@ export async function createTransport(
   mcpServerName: string,
   mcpServerConfig: MCPServerConfig,
   debugMode: boolean,
+  providedAccessToken?: string,
 ): Promise<Transport> {
   if (
+    !providedAccessToken &&
     mcpServerConfig.authProviderType === AuthProviderType.GOOGLE_CREDENTIALS
   ) {
     const provider = new GoogleCredentialProvider(mcpServerConfig);
@@ -1050,58 +1008,50 @@ export async function createTransport(
   }
 
   // Check if we have OAuth configuration or stored tokens
-  let accessToken: string | null = null;
-  let hasOAuthConfig = mcpServerConfig.oauth?.enabled;
+  let accessToken: string | null = providedAccessToken || null;
+  let hasOAuthConfig =
+    mcpServerConfig.oauth?.enabled || Boolean(providedAccessToken);
 
-  if (hasOAuthConfig && mcpServerConfig.oauth) {
-    accessToken = await MCPOAuthProvider.getValidToken(
-      mcpServerName,
-      mcpServerConfig.oauth,
-    );
-
-    if (!accessToken) {
-      console.error(
-        `MCP server '${mcpServerName}' requires OAuth authentication. ` +
-          `Please authenticate using the /mcp auth command.`,
+  if (!accessToken) {
+    if (hasOAuthConfig && mcpServerConfig.oauth) {
+      accessToken = await MCPOAuthProvider.getValidToken(
+        mcpServerName,
+        mcpServerConfig.oauth,
       );
-      throw new Error(
-        `MCP server '${mcpServerName}' requires OAuth authentication. ` +
-          `Please authenticate using the /mcp auth command.`,
-      );
-    }
-  } else {
-    // Check if we have stored OAuth tokens for this server (from previous authentication)
-    const credentials = await MCPOAuthTokenStorage.getToken(mcpServerName);
-    if (credentials) {
-      accessToken = await MCPOAuthProvider.getValidToken(mcpServerName, {
-        // Pass client ID if available
-        clientId: credentials.clientId,
-      });
 
-      if (accessToken) {
-        hasOAuthConfig = true;
-        console.log(`Found stored OAuth token for server '${mcpServerName}'`);
+      if (!accessToken) {
+        console.error(
+          `MCP server '${mcpServerName}' requires OAuth authentication. ` +
+            `Please authenticate using the /mcp auth command.`,
+        );
+        throw new Error(
+          `MCP server '${mcpServerName}' requires OAuth authentication. ` +
+            `Please authenticate using the /mcp auth command.`,
+        );
+      }
+    } else {
+      // Check if we have stored OAuth tokens for this server (from previous authentication)
+      const credentials = await MCPOAuthTokenStorage.getToken(mcpServerName);
+      if (credentials) {
+        accessToken = await MCPOAuthProvider.getValidToken(mcpServerName, {
+          // Pass client ID if available
+          clientId: credentials.clientId,
+        });
+
+        if (accessToken) {
+          hasOAuthConfig = true;
+          console.log(`Found stored OAuth token for server '${mcpServerName}'`);
+        }
       }
     }
   }
 
+  const transportOptions = createTransportOptions(
+    mcpServerConfig.headers,
+    accessToken,
+  );
+
   if (mcpServerConfig.httpUrl) {
-    const transportOptions: StreamableHTTPClientTransportOptions = {};
-
-    // Set up headers with OAuth token if available
-    if (hasOAuthConfig && accessToken) {
-      transportOptions.requestInit = {
-        headers: {
-          ...mcpServerConfig.headers,
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-    } else if (mcpServerConfig.headers) {
-      transportOptions.requestInit = {
-        headers: mcpServerConfig.headers,
-      };
-    }
-
     return new StreamableHTTPClientTransport(
       new URL(mcpServerConfig.httpUrl),
       transportOptions,
@@ -1109,22 +1059,6 @@ export async function createTransport(
   }
 
   if (mcpServerConfig.url) {
-    const transportOptions: SSEClientTransportOptions = {};
-
-    // Set up headers with OAuth token if available
-    if (hasOAuthConfig && accessToken) {
-      transportOptions.requestInit = {
-        headers: {
-          ...mcpServerConfig.headers,
-          Authorization: `Bearer ${accessToken}`,
-        },
-      };
-    } else if (mcpServerConfig.headers) {
-      transportOptions.requestInit = {
-        headers: mcpServerConfig.headers,
-      };
-    }
-
     return new SSEClientTransport(
       new URL(mcpServerConfig.url),
       transportOptions,

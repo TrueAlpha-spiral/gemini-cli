@@ -7,18 +7,9 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { marked } from 'marked';
+import { getLogger } from './logging.js';
 
-// Simple console logger for import processing
-const logger = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  debug: (...args: any[]) =>
-    console.debug('[DEBUG] [ImportProcessor]', ...args),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  warn: (...args: any[]) => console.warn('[WARN] [ImportProcessor]', ...args),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  error: (...args: any[]) =>
-    console.error('[ERROR] [ImportProcessor]', ...args),
-};
+const logger = getLogger('ImportProcessor');
 
 /**
  * Interface for tracking import processing state to prevent circular imports

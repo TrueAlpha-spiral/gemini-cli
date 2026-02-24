@@ -6,6 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach, Mock } from 'vitest';
 import { Config, ConfigParameters, SandboxConfig } from './config.js';
+import { IdeClient } from '../ide/ide-client.js';
 import * as path from 'path';
 import { setGeminiMdFilename as mockSetGeminiMdFilename } from '../tools/memoryTool.js';
 import {
@@ -438,6 +439,39 @@ describe('Server Config (config.ts)', () => {
       delete paramsWithoutTelemetry.telemetry;
       const config = new Config(paramsWithoutTelemetry);
       expect(config.getTelemetryOtlpEndpoint()).toBe(DEFAULT_OTLP_ENDPOINT);
+    });
+  });
+
+  describe('IdeClient Integration', () => {
+    it('should pass the version to IdeClient.connect() in constructor', () => {
+      const ideClientInstance = IdeClient.getInstance();
+      const connectSpy = vi.spyOn(ideClientInstance, 'connect');
+      const version = '2.0.0';
+
+      new Config({
+        ...baseParams,
+        ideMode: true,
+        ideModeFeature: true,
+        version,
+      });
+
+      expect(connectSpy).toHaveBeenCalledWith(version);
+      connectSpy.mockRestore();
+    });
+
+    it('should pass the version to IdeClient.connect() in setIdeModeAndSyncConnection', async () => {
+      const version = '2.0.0';
+      const config = new Config({
+        ...baseParams,
+        version,
+      });
+      const ideClientInstance = config.getIdeClient();
+      const connectSpy = vi.spyOn(ideClientInstance, 'connect');
+
+      await config.setIdeModeAndSyncConnection(true);
+
+      expect(connectSpy).toHaveBeenCalledWith(version);
+      connectSpy.mockRestore();
     });
   });
 });

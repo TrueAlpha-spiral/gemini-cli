@@ -63,6 +63,7 @@ export class IdeClient {
   private readonly currentIde: DetectedIde | undefined;
   private readonly currentIdeDisplayName: string | undefined;
   private diffResponses = new Map<string, (result: DiffUpdateResult) => void>();
+  private version = '1.0.0';
 
   private constructor() {
     this.currentIde = detectIde();
@@ -78,8 +79,12 @@ export class IdeClient {
     return IdeClient.instance;
   }
 
-  async connect(): Promise<void> {
+  async connect(version?: string): Promise<void> {
     this.setState(IDEConnectionStatus.Connecting);
+
+    if (version) {
+      this.version = version;
+    }
 
     if (!this.currentIde || !this.currentIdeDisplayName) {
       this.setState(
@@ -327,8 +332,7 @@ export class IdeClient {
     try {
       this.client = new Client({
         name: 'streamable-http-client',
-        // TODO(#3487): use the CLI version here.
-        version: '1.0.0',
+        version: this.version,
       });
       transport = new StreamableHTTPClientTransport(
         new URL(`http://${getIdeServerHost()}:${port}/mcp`),

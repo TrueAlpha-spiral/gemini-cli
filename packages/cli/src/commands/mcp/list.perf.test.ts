@@ -1,9 +1,19 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { listMcpServers } from './list.js';
 import { loadSettings } from '../../config/settings.js';
 import { loadExtensions } from '../../config/extension.js';
-import { createTransport } from '@google/gemini-cli-core';
+import {
+  createTransport,
+  MCPServerConfig,
+  computeTASResonance,
+  retrievePersistentRootKernel,
+} from '@google/gemini-cli-core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 vi.mock('../../config/settings.js');
@@ -14,6 +24,8 @@ vi.mock('@modelcontextprotocol/sdk/client/index.js');
 const mockedLoadSettings = loadSettings as vi.Mock;
 const mockedLoadExtensions = loadExtensions as vi.Mock;
 const mockedCreateTransport = createTransport as vi.Mock;
+const mockedComputeTASResonance = computeTASResonance as vi.Mock;
+const mockedRetrievePersistentRootKernel = retrievePersistentRootKernel as vi.Mock;
 const MockedClient = Client as vi.Mock;
 
 interface MockClient {
@@ -45,6 +57,8 @@ describe('mcp list command performance', () => {
     MockedClient.mockImplementation(() => mockClient);
     mockedCreateTransport.mockResolvedValue(mockTransport);
     mockedLoadExtensions.mockReturnValue([]);
+    mockedRetrievePersistentRootKernel.mockResolvedValue({});
+    mockedComputeTASResonance.mockResolvedValue({ valid: true });
   });
 
   afterEach(() => {
@@ -54,7 +68,7 @@ describe('mcp list command performance', () => {
   it('should run server checks in parallel', async () => {
     const serverCount = 3;
     const serverDelay = 100;
-    const servers: Record<string, any> = {};
+    const servers: Record<string, MCPServerConfig> = {};
     for (let i = 0; i < serverCount; i++) {
       servers[`server-${i}`] = { command: 'echo', args: ['hello'] };
     }
@@ -64,8 +78,6 @@ describe('mcp list command performance', () => {
     const startTime = Date.now();
     await listMcpServers();
     const duration = Date.now() - startTime;
-
-    // console.log(`Duration: ${duration}ms`); // This is swallowed by spy
 
     // With parallel execution, it should be close to serverDelay (100ms) + overhead.
     // With sequential execution, it is close to serverCount * serverDelay (300ms).

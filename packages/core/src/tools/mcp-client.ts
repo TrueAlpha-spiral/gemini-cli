@@ -51,6 +51,8 @@ export enum MCPServerStatus {
   CONNECTING = 'connecting',
   /** Server is connected and ready to use */
   CONNECTED = 'connected',
+  /** The Phoenix Protocol triggered - connection refused by Sovereign Policy */
+  LOCKED = 'locked',
 }
 
 /**

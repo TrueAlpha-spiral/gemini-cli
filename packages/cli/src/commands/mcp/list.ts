@@ -94,10 +94,15 @@ export async function listMcpServers(): Promise<void> {
 
   console.log('Configured MCP servers:\n');
 
-  for (const serverName of serverNames) {
+  const statusPromises = serverNames.map((serverName) =>
+    getServerStatus(serverName, mcpServers[serverName]),
+  );
+
+  for (let i = 0; i < serverNames.length; i++) {
+    const serverName = serverNames[i];
     const server = mcpServers[serverName];
 
-    const status = await getServerStatus(serverName, server);
+    const status = await statusPromises[i];
 
     let statusIndicator = '';
     let statusText = '';

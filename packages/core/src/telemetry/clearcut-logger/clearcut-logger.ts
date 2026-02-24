@@ -102,6 +102,12 @@ export class ClearcutLogger {
   private flushing: boolean = false; // Prevent concurrent flush operations
   private pendingFlush: boolean = false; // Track if a flush was requested during an ongoing flush
 
+  // Cache user account info to avoid sync file I/O on every log event.
+  private cachedEmail: string | null = null;
+  private cachedLifetimeAccounts: number = 0;
+  private lastAccountCheckTime: number = 0;
+  private readonly accountCheckIntervalMs: number = 5000;
+
   private constructor(config?: Config) {
     this.config = config;
     this.events = new FixedDeque<LogEventEntry[]>(Array, this.max_events);
@@ -151,11 +157,16 @@ export class ClearcutLogger {
   }
 
   createLogEvent(name: string, data: EventValue[]): LogEvent {
-    const email = getCachedGoogleAccount();
-    const totalAccounts = getLifetimeGoogleAccounts();
+    const now = Date.now();
+    if (now - this.lastAccountCheckTime > this.accountCheckIntervalMs) {
+      this.cachedEmail = getCachedGoogleAccount();
+      this.cachedLifetimeAccounts = getLifetimeGoogleAccounts();
+      this.lastAccountCheckTime = now;
+    }
+
     data.push({
       gemini_cli_key: EventMetadataKey.GEMINI_CLI_GOOGLE_ACCOUNTS_COUNT,
-      value: totalAccounts.toString(),
+      value: this.cachedLifetimeAccounts.toString(),
     });
 
     const logEvent: LogEvent = {
@@ -166,8 +177,8 @@ export class ClearcutLogger {
     };
 
     // Should log either email or install ID, not both. See go/cloudmill-1p-oss-instrumentation#define-sessionable-id
-    if (email) {
-      logEvent.client_email = email;
+    if (this.cachedEmail) {
+      logEvent.client_email = this.cachedEmail;
     } else {
       logEvent.client_install_id = getInstallationId();
     }

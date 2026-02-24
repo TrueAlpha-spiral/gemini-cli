@@ -29,7 +29,10 @@ export class FetchError extends Error {
 
 export function isPrivateIp(url: string): boolean {
   try {
-    const hostname = new URL(url).hostname;
+    let hostname = new URL(url).hostname;
+    if (hostname.startsWith('[') && hostname.endsWith(']')) {
+      hostname = hostname.slice(1, -1);
+    }
     return PRIVATE_IP_RANGES.some((range) => range.test(hostname));
   } catch (_e) {
     return false;

@@ -13,7 +13,7 @@ import * as os from 'os';
 import { fileURLToPath } from 'url';
 import { DetectedIde } from './detect-ide.js';
 
-const VSCODE_COMMAND = process.platform === 'win32' ? 'code.cmd' : 'code';
+const VSCODE_COMMAND = os.platform() === 'win32' ? 'code.cmd' : 'code';
 const VSCODE_COMPANION_EXTENSION_FOLDER = 'vscode-ide-companion';
 
 export interface IdeInstaller {
@@ -29,7 +29,7 @@ async function findVsCodeCommand(): Promise<string | null> {
   // 1. Check PATH first.
   try {
     child_process.execSync(
-      process.platform === 'win32'
+      os.platform() === 'win32'
         ? `where.exe ${VSCODE_COMMAND}`
         : `command -v ${VSCODE_COMMAND}`,
       { stdio: 'ignore' },
@@ -41,7 +41,7 @@ async function findVsCodeCommand(): Promise<string | null> {
 
   // 2. Check common installation locations.
   const locations: string[] = [];
-  const platform = process.platform;
+  const platform = os.platform();
   const homeDir = os.homedir();
 
   if (platform === 'darwin') {
@@ -130,9 +130,18 @@ class VsCodeInstaller implements IdeInstaller {
     }
 
     const vsixPath = vsixFiles[0];
-    const command = `"${commandPath}" --install-extension "${vsixPath}" --force`;
+    const args = ['--install-extension', vsixPath, '--force'];
     try {
-      child_process.execSync(command, { stdio: 'pipe' });
+    if (os.platform() === 'win32' && commandPath.endsWith('.cmd')) {
+        // On Windows, .cmd files must be executed via cmd.exe if not using shell: true
+        child_process.execFileSync(
+          process.env.ComSpec || 'cmd.exe',
+          ['/c', commandPath, ...args],
+          { stdio: 'pipe' },
+        );
+      } else {
+        child_process.execFileSync(commandPath, args, { stdio: 'pipe' });
+      }
       return {
         success: true,
         message:

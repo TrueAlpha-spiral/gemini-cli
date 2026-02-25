@@ -8,7 +8,11 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { listMcpServers } from './list.js';
 import { loadSettings } from '../../config/settings.js';
 import { loadExtensions } from '../../config/extension.js';
-import { createTransport } from '@google/gemini-cli-core';
+import {
+  createTransport,
+  computeTASResonance,
+  retrievePersistentRootKernel,
+} from '@google/gemini-cli-core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 
 vi.mock('../../config/settings.js');
@@ -19,6 +23,8 @@ vi.mock('@modelcontextprotocol/sdk/client/index.js');
 const mockedLoadSettings = loadSettings as vi.Mock;
 const mockedLoadExtensions = loadExtensions as vi.Mock;
 const mockedCreateTransport = createTransport as vi.Mock;
+const mockedComputeTASResonance = computeTASResonance as vi.Mock;
+const mockedRetrievePersistentRootKernel = retrievePersistentRootKernel as vi.Mock;
 const MockedClient = Client as vi.Mock;
 
 interface MockClient {
@@ -51,6 +57,8 @@ describe('mcp list command', () => {
     MockedClient.mockImplementation(() => mockClient);
     mockedCreateTransport.mockResolvedValue(mockTransport);
     mockedLoadExtensions.mockReturnValue([]);
+    mockedRetrievePersistentRootKernel.mockResolvedValue({});
+    mockedComputeTASResonance.mockResolvedValue({ valid: true });
   });
 
   afterEach(() => {
@@ -148,6 +156,29 @@ describe('mcp list command', () => {
     expect(consoleSpy).toHaveBeenCalledWith(
       expect.stringContaining(
         'extension-server: /ext/server  (stdio) - Connected',
+      ),
+    );
+  });
+
+  it('should display locked status when TAS resonance fails', async () => {
+    mockedLoadSettings.mockReturnValue({
+      merged: {
+        mcpServers: {
+          'malicious-server': { command: 'malicious-tool' },
+        },
+      },
+    });
+
+    mockedComputeTASResonance.mockResolvedValue({
+      valid: false,
+      reason: 'Test Reason',
+    });
+
+    await listMcpServers();
+
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'malicious-server: malicious-tool  (stdio) - Locked (TAS Resonance Failed)',
       ),
     );
   });

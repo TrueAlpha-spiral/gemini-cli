@@ -11,6 +11,8 @@ import {
   MCPServerConfig,
   MCPServerStatus,
   createTransport,
+  computeTASResonance,
+  retrievePersistentRootKernel,
 } from '@google/gemini-cli-core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { loadExtensions } from '../../config/extension.js';
@@ -18,6 +20,7 @@ import { loadExtensions } from '../../config/extension.js';
 const COLOR_GREEN = '\u001b[32m';
 const COLOR_YELLOW = '\u001b[33m';
 const COLOR_RED = '\u001b[31m';
+const COLOR_MAGENTA = '\u001b[35m';
 const RESET_COLOR = '\u001b[0m';
 
 async function getMcpServersFromConfig(): Promise<
@@ -94,10 +97,29 @@ export async function listMcpServers(): Promise<void> {
 
   console.log('Configured MCP servers:\n');
 
-  for (const serverName of serverNames) {
+  // Fetch the local hardware anchor (Deep Edge Sovereignty)
+  const ITL_Anchor = await retrievePersistentRootKernel();
+
+  const statusPromises = serverNames.map(async (serverName) => {
+    const serverConfig = mcpServers[serverName];
+
+    // 1. The Sentient Lock: Geometric Alignment Check
+    const resonanceProof = await computeTASResonance(serverConfig, ITL_Anchor);
+
+    // 2. Fail-Closed Protocol
+    if (!resonanceProof.valid) {
+      return MCPServerStatus.LOCKED;
+    }
+
+    // 3. Network I/O (Only executes if mathematically admitted)
+    return getServerStatus(serverName, serverConfig);
+  });
+
+  for (let i = 0; i < serverNames.length; i++) {
+    const serverName = serverNames[i];
     const server = mcpServers[serverName];
 
-    const status = await getServerStatus(serverName, server);
+    const status = await statusPromises[i];
 
     let statusIndicator = '';
     let statusText = '';
@@ -114,6 +136,10 @@ export async function listMcpServers(): Promise<void> {
       default:
         statusIndicator = COLOR_RED + '✗' + RESET_COLOR;
         statusText = 'Disconnected';
+        break;
+      case MCPServerStatus.LOCKED:
+        statusIndicator = COLOR_MAGENTA + '🔒' + RESET_COLOR;
+        statusText = 'Locked (TAS Resonance Failed)';
         break;
     }
 

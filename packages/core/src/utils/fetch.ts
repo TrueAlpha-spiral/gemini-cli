@@ -15,6 +15,8 @@ const PRIVATE_IP_RANGES = [
   /^::1$/,
   /^fc00:/,
   /^fe80:/,
+  /^localhost$/,
+  /\.localhost$/,
 ];
 
 export class FetchError extends Error {

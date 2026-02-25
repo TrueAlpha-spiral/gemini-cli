@@ -46,8 +46,9 @@ describe('isPrivateIp', () => {
   it('should handle domain names', () => {
     expect(isPrivateIp('http://google.com')).toBe(false);
     expect(isPrivateIp('http://example.org')).toBe(false);
-    // Based on current implementation, localhost is not in the regex list.
-    expect(isPrivateIp('http://localhost')).toBe(false);
+    // Localhost should be considered private
+    expect(isPrivateIp('http://localhost')).toBe(true);
+    expect(isPrivateIp('http://sub.localhost')).toBe(true);
   });
 
   it('should handle invalid URLs', () => {

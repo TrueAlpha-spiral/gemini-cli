@@ -96,7 +96,8 @@ const saveCommand: SlashCommand = {
   description:
     'Save the current conversation as a checkpoint. Usage: /chat save <tag>',
   kind: CommandKind.BUILT_IN,
-  action: async (context, args): Promise<MessageActionReturn> => {
+  action: async (context): Promise<MessageActionReturn> => {
+    const args = context.invocation?.args ?? '';
     const tag = args.trim();
     if (!tag) {
       return {
@@ -141,7 +142,8 @@ const resumeCommand: SlashCommand = {
   description:
     'Resume a conversation from a checkpoint. Usage: /chat resume <tag>',
   kind: CommandKind.BUILT_IN,
-  action: async (context, args) => {
+  action: async (context) => {
+    const args = context.invocation?.args ?? '';
     const tag = args.trim();
     if (!tag) {
       return {
@@ -210,7 +212,8 @@ const deleteCommand: SlashCommand = {
   name: 'delete',
   description: 'Delete a conversation checkpoint. Usage: /chat delete <tag>',
   kind: CommandKind.BUILT_IN,
-  action: async (context, args): Promise<MessageActionReturn> => {
+  action: async (context): Promise<MessageActionReturn> => {
+    const args = context.invocation?.args ?? '';
     const tag = args.trim();
     if (!tag) {
       return {

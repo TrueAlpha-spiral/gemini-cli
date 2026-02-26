@@ -84,7 +84,6 @@ export class McpPromptLoader implements ICommandLoader {
           ],
           action: async (
             context: CommandContext,
-            args: string,
           ): Promise<SlashCommandActionReturn> => {
             if (!this.config) {
               return {
@@ -94,6 +93,7 @@ export class McpPromptLoader implements ICommandLoader {
               };
             }
 
+            const args = context.invocation?.args ?? '';
             const promptInputs = this.parseArgs(args, prompt.arguments);
             if (promptInputs instanceof Error) {
               return {

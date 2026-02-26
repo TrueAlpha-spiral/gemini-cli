@@ -34,11 +34,12 @@ export const directoryCommand: SlashCommand = {
       description:
         'Add directories to the workspace. Use comma to separate multiple paths',
       kind: CommandKind.BUILT_IN,
-      action: async (context: CommandContext, args: string) => {
+      action: async (context: CommandContext) => {
         const {
           ui: { addItem },
           services: { config },
         } = context;
+        const args = context.invocation?.args ?? '';
         const [...rest] = args.split(' ');
 
         if (!config) {

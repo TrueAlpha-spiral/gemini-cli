@@ -315,7 +315,6 @@ export const useSlashCommandProcessor = (
 
             const result = await commandToExecute.action(
               fullCommandContext,
-              args,
             );
 
             if (result) {

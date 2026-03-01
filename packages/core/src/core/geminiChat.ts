@@ -20,6 +20,12 @@ import { retryWithBackoff } from '../utils/retry.js';
 import { isFunctionResponse } from '../utils/messageInspectors.js';
 import { ContentGenerator, AuthType } from './contentGenerator.js';
 import { Config } from '../config/config.js';
+import {
+  RefractalAuthenticator,
+  RefractalState,
+} from '../governance/refractal-authentication.js';
+import { PhoenixError } from '../governance/persistent-root-kernel.js';
+import { retrievePersistentRootKernel } from '../governance/tas-resonance.js';
 import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { hasCycleInSchema } from '../tools/tools.js';
 import { StructuredError } from './turn.js';
@@ -457,12 +463,48 @@ export class GeminiChat {
     const chunks: GenerateContentResponse[] = [];
     let errorOccurred = false;
 
+    // Initialize TAS Refractal Authentication (ARV Monitor)
+    const anchor = await retrievePersistentRootKernel();
+    // Use the prompt history/input as the initial context binding
+    const initialContext = JSON.stringify(inputContent);
+    let refractalState: RefractalState = RefractalAuthenticator.initialize(
+      anchor,
+      initialContext,
+    );
+
     try {
       for await (const chunk of streamResponse) {
         if (isValidResponse(chunk)) {
           chunks.push(chunk);
           const content = chunk.candidates?.[0]?.content;
           if (content !== undefined) {
+            // ARV Monitor: Check each text chunk for drift/poison
+            const textParts =
+              content.parts
+                ?.filter((p) => typeof p.text === 'string')
+                .map((p) => p.text)
+                .join('') || '';
+            if (textParts.length > 0) {
+              const verification = RefractalAuthenticator.verifyTrajectory(
+                textParts,
+                refractalState,
+                anchor,
+              );
+
+              if (!verification.valid) {
+                errorOccurred = true;
+                throw new PhoenixError(
+                  verification.reason || 'Unknown trajectory drift.',
+                );
+              }
+
+              // Update the continuous hash chain
+              refractalState = RefractalAuthenticator.authenticateChunk(
+                textParts,
+                refractalState,
+              );
+            }
+
             if (this.isThoughtContent(content)) {
               yield chunk;
               continue;

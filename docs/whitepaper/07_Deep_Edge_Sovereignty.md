@@ -5,8 +5,9 @@ Sovereignty cannot exist in the cloud alone; it must be anchored in the physical
 ## 7.1 Hardware Anchors
 
 The kernel binds to the device's **Secure Enclave** (or Trusted Execution Environment).
-*   **Biometric Genesis:** The $H_0$ seed is unlocked via physical presence (FaceID/TouchID).
-*   **Key Custody:** Private signing keys never leave the hardware boundary.
+
+- **Biometric Genesis:** The $H_0$ seed is unlocked via physical presence (FaceID/TouchID).
+- **Key Custody:** Private signing keys never leave the hardware boundary.
 
 ## 7.2 The Intercept Pipeline
 
@@ -20,6 +21,7 @@ The kernel sits at the OS boundary, intercepting all "Cognitive Streams" (prompt
 ## 7.3 Executable Specification
 
 The reference implementation (`PersistentRootKernel`) provides:
-*   `evaluate_cognitive_stream(prompt)`: The primary gatekeeper function.
-*   `SecureEnclave` simulation: Standard crypto primitives mirroring hardware logic.
-*   `PhoenixError`: Type-safe handling of Refusal Integrity events.
+
+- `evaluate_cognitive_stream(prompt)`: The primary gatekeeper function.
+- `SecureEnclave` simulation: Standard crypto primitives mirroring hardware logic.
+- `PhoenixError`: Type-safe handling of Refusal Integrity events.

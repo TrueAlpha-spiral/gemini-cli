@@ -37,10 +37,10 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       },
     };
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      SovereignViolationError
+      SovereignViolationError,
     );
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /revocation capability/
+      /revocation capability/,
     );
   });
 
@@ -50,10 +50,10 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
     } as SovereignAction;
 
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      SovereignViolationError
+      SovereignViolationError,
     );
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /anchored/
+      /anchored/,
     );
   });
 
@@ -65,7 +65,7 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       } as any,
     };
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /parent_hash/
+      /parent_hash/,
     );
   });
 });

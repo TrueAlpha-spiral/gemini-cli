@@ -135,23 +135,30 @@ describe('MCPOAuthProvider Security', () => {
       json: () => Promise.resolve(mockTokenResponse),
     });
 
-    await MCPOAuthProvider.authenticate(
-      'test-server',
-      mockConfig,
-    );
+    await MCPOAuthProvider.authenticate('test-server', mockConfig);
 
     // Get all arguments passed to console.log
-    const logCalls = vi.mocked(console.log).mock.calls.map(args => args.join(' '));
+    const logCalls = vi
+      .mocked(console.log)
+      .mock.calls.map((args) => args.join(' '));
 
     // Check that none of the log messages contain the access token or its substring
     const tokenPart = mockToken.accessToken.substring(0, 20);
 
-    const logsWithToken = logCalls.filter(msg => msg.includes(tokenPart));
+    const logsWithToken = logCalls.filter((msg) => msg.includes(tokenPart));
 
     // This expectation should fail before the fix
-    expect(logsWithToken, `Found logs containing token substring: ${JSON.stringify(logsWithToken)}`).toHaveLength(0);
+    expect(
+      logsWithToken,
+      `Found logs containing token substring: ${JSON.stringify(logsWithToken)}`,
+    ).toHaveLength(0);
 
-    const logsWithFullToken = logCalls.filter(msg => msg.includes(mockToken.accessToken));
-    expect(logsWithFullToken, `Found logs containing full token: ${JSON.stringify(logsWithFullToken)}`).toHaveLength(0);
+    const logsWithFullToken = logCalls.filter((msg) =>
+      msg.includes(mockToken.accessToken),
+    );
+    expect(
+      logsWithFullToken,
+      `Found logs containing full token: ${JSON.stringify(logsWithFullToken)}`,
+    ).toHaveLength(0);
   });
 });

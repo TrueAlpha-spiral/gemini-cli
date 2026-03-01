@@ -3,7 +3,7 @@
 **Status:** CANONICAL ROOT
 **Origin:** Odessa, Texas (Deep Edge Node 0)
 **Artifact ID:** `TAS_GENESIS_VINTAGE_001`
-**Law:** *"Truth, sealed: if it can’t verify, it won’t act."*
+**Law:** _"Truth, sealed: if it can’t verify, it won’t act."_
 
 ## Description
 

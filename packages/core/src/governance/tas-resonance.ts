@@ -52,7 +52,10 @@ export async function computeTASResonance(
     env: config.env,
   });
 
-  const configHash = crypto.createHash('sha256').update(configString).digest('hex');
+  const configHash = crypto
+    .createHash('sha256')
+    .update(configString)
+    .digest('hex');
 
   // 2. Perform Resonance Check (Simulated)
   // In a real implementation, this would query the ITL or check against a signed manifest.
@@ -61,10 +64,14 @@ export async function computeTASResonance(
   // - Otherwise, assume valid if anchor verifies it.
 
   // Simulate a "malicious" tool config that triggers the lock
-  if (configString.includes('malicious-tool') || configString.includes('unauthorized-fs-access')) {
+  if (
+    configString.includes('malicious-tool') ||
+    configString.includes('unauthorized-fs-access')
+  ) {
     return {
       valid: false,
-      reason: 'Geometric Misalignment: Configuration hash indicates unauthorized pattern.',
+      reason:
+        'Geometric Misalignment: Configuration hash indicates unauthorized pattern.',
       timestamp: Date.now(),
     };
   }
@@ -73,16 +80,17 @@ export async function computeTASResonance(
   const isValid = anchor.verify(configHash);
 
   if (!isValid) {
-      return {
-          valid: false,
-          reason: 'Anchor Rejection: Hash not present in Immutable Truth Ledger.',
-          timestamp: Date.now(),
-      };
+    return {
+      valid: false,
+      reason: 'Anchor Rejection: Hash not present in Immutable Truth Ledger.',
+      timestamp: Date.now(),
+    };
   }
 
   // 3. Generate "Signature" (Proof of Resonance)
   // This signature would be passed to the tool connection if successful.
-  const signature = crypto.createHmac('sha256', anchor.public_key)
+  const signature = crypto
+    .createHmac('sha256', anchor.public_key)
     .update(configHash + anchor.genesis_hash)
     .digest('hex');
 
@@ -97,10 +105,10 @@ export async function computeTASResonance(
  * Retrieves the local ITL Anchor (simulated).
  */
 export async function retrievePersistentRootKernel(): Promise<ITLAnchor> {
-    // Return a mock anchor for now
-    return {
-        genesis_hash: 'TAS-GENESIS-001',
-        public_key: 'TAS-PUB-KEY-ALPHA',
-        verify: (_hash: string) => true, // Default to true for now unless explicitly malicious
-    };
+  // Return a mock anchor for now
+  return {
+    genesis_hash: 'TAS-GENESIS-001',
+    public_key: 'TAS-PUB-KEY-ALPHA',
+    verify: (_hash: string) => true, // Default to true for now unless explicitly malicious
+  };
 }

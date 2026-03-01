@@ -24,7 +24,8 @@ const mockedLoadSettings = loadSettings as vi.Mock;
 const mockedLoadExtensions = loadExtensions as vi.Mock;
 const mockedCreateTransport = createTransport as vi.Mock;
 const mockedComputeTASResonance = computeTASResonance as vi.Mock;
-const mockedRetrievePersistentRootKernel = retrievePersistentRootKernel as vi.Mock;
+const mockedRetrievePersistentRootKernel =
+  retrievePersistentRootKernel as vi.Mock;
 const MockedClient = Client as vi.Mock;
 
 interface MockClient {

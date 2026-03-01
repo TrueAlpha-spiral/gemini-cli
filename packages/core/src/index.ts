@@ -49,6 +49,7 @@ export * from './services/gitService.js';
 // Export Governance
 export * from './governance/persistent-root-kernel.js';
 export * from './governance/tas-resonance.js';
+export * from './governance/refractal-authentication.js';
 
 // Export IDE specific logic
 export * from './ide/ide-client.js';

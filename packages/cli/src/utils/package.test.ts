@@ -34,7 +34,9 @@ describe('getPackageJson', () => {
     const { getPackageJson } = await import('./package.js');
     vi.mocked(readPackageUp).mockResolvedValue(undefined);
 
-    await expect(getPackageJson()).rejects.toThrow('Could not find package.json for @google/gemini-cli');
+    await expect(getPackageJson()).rejects.toThrow(
+      'Could not find package.json for @google/gemini-cli',
+    );
   });
 
   it('should use cached version on subsequent calls', async () => {

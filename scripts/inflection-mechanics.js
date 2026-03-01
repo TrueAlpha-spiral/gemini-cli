@@ -30,9 +30,9 @@ class InflectionPointMetrics {
 
   toString() {
     return `Metrics: Convergence=${this.truthConvergence.toFixed(
-      4
+      4,
     )}, Eigenresonance=${this.eigenresonance.toFixed(
-      4
+      4,
     )}, Probability=${this.inflectionProbability.toFixed(4)}`;
   }
 }
@@ -50,7 +50,7 @@ class Statement {
 
   toString() {
     return `[Statement: "${this.content}", Complexity=${this.complexity.toFixed(
-      4
+      4,
     )}, Resonance=${this.resonance.toFixed(4)}, Self-Reinforced=${
       this.isSelfReinforced
     }]`;
@@ -65,7 +65,9 @@ function establishSelfReinforcement(statement) {
   statement.isSelfReinforced = true;
   statement.complexity = 0; // Absolute simplicity
   statement.resonance *= GOLDEN_RATIO * GOLDEN_RATIO; // Massive boost
-  console.log('>>> INFLECTION POINT REACHED: System Self-Reinforcement Established <<<');
+  console.log(
+    '>>> INFLECTION POINT REACHED: System Self-Reinforcement Established <<<',
+  );
 }
 
 /**
@@ -115,7 +117,7 @@ function demonstrateInflectionPointPhysics() {
   const initialStatement = new Statement(
     'The system integrity is absolute.',
     10.0, // High initial complexity
-    1.0   // Low initial resonance
+    1.0, // Low initial resonance
   );
 
   const depth = 10;

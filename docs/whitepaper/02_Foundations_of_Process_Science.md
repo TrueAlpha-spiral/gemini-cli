@@ -27,8 +27,10 @@ $$L_e(S_{n+1}) \le L_e(S_n) + \delta_{allowable}$$
 To operationalize these axioms, we define two measurable quantities:
 
 ### Lineage Entropy ($L_e$)
+
 The measure of "drift" or semantic distance ($\Delta$) between a generated state and its anchored origin ($d$). High $L_e$ indicates hallucination or "Para" data turbulence. The Curation layer's job is to minimize $L_e$.
 
 ### Refusal Integrity ($R_i$)
+
 The capacity of the system to "fail closed." When $L_e$ exceeds the admissibility threshold, the system must trigger the **Phoenix Protocol**, collapsing the wave function to "silence" rather than emitting a potentially false state.
 $$R_i = \begin{cases} 1 & \text{if } L_e \le Threshold \\ 0 & \text{if } L_e > Threshold \to \text{Halt} \end{cases}$$

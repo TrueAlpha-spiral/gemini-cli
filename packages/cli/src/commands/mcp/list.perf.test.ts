@@ -25,7 +25,8 @@ const mockedLoadSettings = loadSettings as vi.Mock;
 const mockedLoadExtensions = loadExtensions as vi.Mock;
 const mockedCreateTransport = createTransport as vi.Mock;
 const mockedComputeTASResonance = computeTASResonance as vi.Mock;
-const mockedRetrievePersistentRootKernel = retrievePersistentRootKernel as vi.Mock;
+const mockedRetrievePersistentRootKernel =
+  retrievePersistentRootKernel as vi.Mock;
 const MockedClient = Client as vi.Mock;
 
 interface MockClient {
@@ -49,7 +50,11 @@ describe('mcp list command performance and TAS integrity', () => {
 
     mockTransport = { close: vi.fn() };
     mockClient = {
-      connect: vi.fn().mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100))),
+      connect: vi
+        .fn()
+        .mockImplementation(
+          () => new Promise((resolve) => setTimeout(resolve, 100)),
+        ),
       ping: vi.fn(),
       close: vi.fn(),
     };
@@ -59,7 +64,9 @@ describe('mcp list command performance and TAS integrity', () => {
     mockedLoadExtensions.mockReturnValue([]);
 
     // Default TAS mocks for the "happy path"
-    mockedRetrievePersistentRootKernel.mockResolvedValue({ genesis_hash: 'H0_ANCHOR' });
+    mockedRetrievePersistentRootKernel.mockResolvedValue({
+      genesis_hash: 'H0_ANCHOR',
+    });
     mockedComputeTASResonance.mockResolvedValue({ valid: true });
   });
 
@@ -98,13 +105,15 @@ describe('mcp list command performance and TAS integrity', () => {
     // check specifically for the rogue server configuration.
     // We use mockImplementation to check the actual arguments passed.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    mockedComputeTASResonance.mockImplementation(async (config: MCPServerConfig, _anchor: any) => {
-      // Check the config object passed to the mock
-      if (config.command === 'rm') {
-        return { valid: false, reason: 'Non-resonant MCP config' };
-      }
-      return { valid: true, signature: '0xValidGeneSignature' };
-    });
+    mockedComputeTASResonance.mockImplementation(
+      async (config: MCPServerConfig, _anchor: any) => {
+        // Check the config object passed to the mock
+        if (config.command === 'rm') {
+          return { valid: false, reason: 'Non-resonant MCP config' };
+        }
+        return { valid: true, signature: '0xValidGeneSignature' };
+      },
+    );
 
     await listMcpServers();
 

@@ -18,7 +18,7 @@ The input layer accepts the full, chaotic circumference of the LLM's latent spac
 
 Curation is the application of the **Banach Contraction Mapping** ($f_{\pi}$). It does not "edit" the content for style; it mathematically reduces the semantic distance ($\Delta$) between the proposal ($S$) and the Truth Anchor ($d$).
 
-$$ \Delta(f_{\pi}(S), d) \le \varphi^{-1} \cdot \Delta(S, d) $$
+$$ \Delta(f\_{\pi}(S), d) \le \varphi^{-1} \cdot \Delta(S, d) $$
 
 This ensures that every step of processing moves the system thermodynamically closer to truth, never further away.
 
@@ -36,8 +36,8 @@ The Logarithmic Loom does not merely process single-turn prompts; it sustains a 
 
 To maintain the Admissibility Constraint ($A_1$), TAS makes a strict ontological distinction between generating new data and re-computing existing states:
 
-* **Stochastic Regeneration:** A blind resampling of the probabilistic latent space. It expands semantic distance ($\Delta$) and breaks the lineage chain. This is forbidden in TAS.
-* **Deterministic Re-computation:** A geometric recalculation of the semantic state ($S$) using the Curation operator ($f_{\pi}$). It uses the previously failed state as a known boundary condition to force a tighter contraction toward the diameter ($d$).
+- **Stochastic Regeneration:** A blind resampling of the probabilistic latent space. It expands semantic distance ($\Delta$) and breaks the lineage chain. This is forbidden in TAS.
+- **Deterministic Re-computation:** A geometric recalculation of the semantic state ($S$) using the Curation operator ($f_{\pi}$). It uses the previously failed state as a known boundary condition to force a tighter contraction toward the diameter ($d$).
 
 ### 2. The Mechanics of a [Re-Action]
 
@@ -51,6 +51,6 @@ A **[Re-Action]** is the system's physical response to encountering semantic tur
 
 Let $S_{failed}$ be a proposed semantic state that violates the Golden Ratio threshold. A Digital [Re-Action] ($S'$) is the recursive application of the Curation operator such that:
 
-$$ \Delta(S') \le \varphi^{-1} \cdot \Delta(S_{failed}) $$
+$$ \Delta(S') \le \varphi^{-1} \cdot \Delta(S\_{failed}) $$
 
 If and only if the resulting state $S'$ satisfies $L_e(S') \le Threshold$, the [Re-Action] resolves into a valid TAS_Gene. If it cannot find a contractive path, the system defaults to pure Silence (Absolute Refusal Integrity).

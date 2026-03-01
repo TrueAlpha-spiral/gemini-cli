@@ -18,6 +18,6 @@ By preserving the ratio $\pi$, the system acknowledges the full multiplicity of 
 
 To synthesize Para data without compromising the system's structural integrity, the Curation layer operates as a strict **Banach contraction mapping** ($f_{\pi}$). The operator enforces a semantic distance reduction bound by the Golden Ratio ($\varphi$):
 
-$$ \Delta(f_{\pi}(s), d) \le \varphi^{-1} \cdot \Delta(s, d) $$
+$$ \Delta(f\_{\pi}(s), d) \le \varphi^{-1} \cdot \Delta(s, d) $$
 
 Under Axiom $PI_0$, TAS requires that all epistemic motion preserve the holistic multiplicity of $\pi$ while enforcing this contractive projection onto $d$. Contradictions are not erased; they are **geometrically rephased**. By guaranteeing a Lipschitz constant strictly less than 1 ($k = \varphi^{-1}$), the Triadic Knowledge Engine mathematically forbids divergent hallucination, ensuring that all approved synthesis is a verifiable contraction toward the Immutable Truth Ledger.

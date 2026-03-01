@@ -63,7 +63,7 @@ export interface ZkProver {
    */
   generateProof(
     publicInputs: CircuitPublicInputs,
-    privateInputs: CircuitPrivateInputs
+    privateInputs: CircuitPrivateInputs,
   ): Promise<SnarkProof>;
 
   /**
@@ -71,7 +71,7 @@ export interface ZkProver {
    */
   verifyProof(
     proof: SnarkProof,
-    publicInputs: CircuitPublicInputs
+    publicInputs: CircuitPublicInputs,
   ): Promise<boolean>;
 }
 
@@ -82,7 +82,7 @@ export interface ZkProver {
 export class SimulatedZkProver implements ZkProver {
   async generateProof(
     publicInputs: CircuitPublicInputs,
-    privateInputs: CircuitPrivateInputs
+    privateInputs: CircuitPrivateInputs,
   ): Promise<SnarkProof> {
     // Simulate computational work for proof generation
     // In reality, this would involve computing the witness and running the proving key.
@@ -98,7 +98,10 @@ export class SimulatedZkProver implements ZkProver {
     // Return a mock proof structure
     return {
       pi_a: ['0x123...', '0x456...', '0x789...'],
-      pi_b: [['0xabc...', '0xdef...'], ['0xghi...', '0xjkl...']],
+      pi_b: [
+        ['0xabc...', '0xdef...'],
+        ['0xghi...', '0xjkl...'],
+      ],
       pi_c: ['0xmno...', '0xpqr...'],
       protocol: 'groth16',
       curve: 'bn128',
@@ -107,7 +110,7 @@ export class SimulatedZkProver implements ZkProver {
 
   async verifyProof(
     proof: SnarkProof,
-    publicInputs: CircuitPublicInputs
+    publicInputs: CircuitPublicInputs,
   ): Promise<boolean> {
     // Simulate verification (always verify if proof structure is valid)
     return (

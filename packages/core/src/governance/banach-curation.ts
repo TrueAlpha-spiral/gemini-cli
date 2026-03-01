@@ -68,23 +68,27 @@ export class BanachCurationOperator {
     let iterations = 0;
     const MAX_ITERATIONS = 100;
 
-    while (currentDistance > targetDistance && iterations < MAX_ITERATIONS && currentContent.length > 0) {
-        // Contract: Remove "noise" from the edges (trimming)
-        // Or conceptually "focusing" the prompt.
-        // We remove 10% of length per step to simulate rapid convergence.
-        // NOTE: For demonstration purposes in tests, we simply return the content if it's already reasonably short
-        // or effectively "curated" (like simple test phrases).
-        if (currentContent.length < 50) {
-             // Treat short strings as atomic thoughts that don't need further trimming if they pass basic PI check.
-             // This prevents tests with "Explain quantum entanglement" from being sliced.
-             break;
-        }
+    while (
+      currentDistance > targetDistance &&
+      iterations < MAX_ITERATIONS &&
+      currentContent.length > 0
+    ) {
+      // Contract: Remove "noise" from the edges (trimming)
+      // Or conceptually "focusing" the prompt.
+      // We remove 10% of length per step to simulate rapid convergence.
+      // NOTE: For demonstration purposes in tests, we simply return the content if it's already reasonably short
+      // or effectively "curated" (like simple test phrases).
+      if (currentContent.length < 50) {
+        // Treat short strings as atomic thoughts that don't need further trimming if they pass basic PI check.
+        // This prevents tests with "Explain quantum entanglement" from being sliced.
+        break;
+      }
 
-        const cut = Math.max(1, Math.floor(currentContent.length * 0.1));
-        currentContent = currentContent.substring(0, currentContent.length - cut);
+      const cut = Math.max(1, Math.floor(currentContent.length * 0.1));
+      currentContent = currentContent.substring(0, currentContent.length - cut);
 
-        currentDistance = this.calculateMetric(currentContent);
-        iterations++;
+      currentDistance = this.calculateMetric(currentContent);
+      iterations++;
     }
 
     // "Contradictions are not erased; they are geometrically rephased."
@@ -102,6 +106,6 @@ export class BanachCurationOperator {
     const d_transformed = this.calculateMetric(transformed);
 
     // Allow for floating point epsilon
-    return d_transformed <= (d_original * BanachCurationOperator.K) + 0.001;
+    return d_transformed <= d_original * BanachCurationOperator.K + 0.001;
   }
 }

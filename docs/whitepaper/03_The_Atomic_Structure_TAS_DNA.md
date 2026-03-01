@@ -24,10 +24,10 @@ The TAS_Gene is implemented as a signed data structure:
 
 ```typescript
 interface VerifiedGene {
-  content: string;          // The semantic payload
-  signature: string;        // HMAC/ECDSA proof of provenance
-  genesis_hash: string;     // Link to HumanSeed (H0)
-  human_seed: HumanSeed;    // The originating authority
+  content: string; // The semantic payload
+  signature: string; // HMAC/ECDSA proof of provenance
+  genesis_hash: string; // Link to HumanSeed (H0)
+  human_seed: HumanSeed; // The originating authority
 }
 ```
 

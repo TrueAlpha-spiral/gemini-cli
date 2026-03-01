@@ -14,7 +14,7 @@ import { BanachCurationOperator } from './banach-curation.js';
 export interface PerceptualPoint {
   content: string;
   complexity: number; // Stochastic variability
-  distance: number;   // Distance to invariant diameter (Delta)
+  distance: number; // Distance to invariant diameter (Delta)
 }
 
 /**
@@ -80,7 +80,10 @@ export class PerspectiveIntelligenceEngine {
    * @param seed - The HumanSeed anchoring the diameter.
    * @returns The synthesized content (VerifiedGene content) or null if contraction fails.
    */
-  curate(rawInput: string, seed: HumanSeed): { content: string; pi: number; delta: number } | null {
+  curate(
+    rawInput: string,
+    seed: HumanSeed,
+  ): { content: string; pi: number; delta: number } | null {
     const d = this.calculateDiameter(seed);
 
     // 1. Initial State Assessment
@@ -90,7 +93,7 @@ export class PerspectiveIntelligenceEngine {
     // Check initial PI threshold before even attempting contraction
     const MAX_PI = 10.0;
     if (pi_initial > MAX_PI) {
-        return null; // Too much turbulence
+      return null; // Too much turbulence
     }
 
     // 2. Apply Banach Contraction (f_pi)
@@ -100,13 +103,13 @@ export class PerspectiveIntelligenceEngine {
     // 3. Verify Contraction (Theorem of Epistemic Convergence)
     // Delta(f(s)) <= k * Delta(s)
     if (!this.banach.verifyContraction(rawInput, contractedContent)) {
-       // If contraction failed to reduce entropy sufficiently (shouldn't happen with our loop),
-       // we reject the synthesis.
-       // Note: If input was already perfect (Delta=0), verifyContraction might return true or false
-       // depending on strictly less than logic.
-       // Our simulated apply() handles distance > targetDistance.
-       // If initial distance is low, it returns as is.
-       // So we pass if contracton occurred OR if it was already stable.
+      // If contraction failed to reduce entropy sufficiently (shouldn't happen with our loop),
+      // we reject the synthesis.
+      // Note: If input was already perfect (Delta=0), verifyContraction might return true or false
+      // depending on strictly less than logic.
+      // Our simulated apply() handles distance > targetDistance.
+      // If initial distance is low, it returns as is.
+      // So we pass if contracton occurred OR if it was already stable.
     }
 
     const C_final = this.calculateCircumference(contractedContent);
@@ -114,9 +117,9 @@ export class PerspectiveIntelligenceEngine {
     const delta_final = this.calculateDistance(contractedContent, d);
 
     return {
-        content: contractedContent,
-        pi: pi_final,
-        delta: delta_final
+      content: contractedContent,
+      pi: pi_final,
+      delta: delta_final,
     };
   }
 }

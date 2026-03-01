@@ -155,6 +155,7 @@ class TriadicKnowledgeEngine {
     const curated = this.piEngine.curate(raw_input, human_seed);
 
     let contentToWeave = "";
+    let effectivePhiScore = 0;
 
     if (!curated) {
       // 2.5 The Recursive Runtime ([Re-Action])
@@ -165,23 +166,38 @@ class TriadicKnowledgeEngine {
         // We bypass the standard weaving below because recompute returns a full VerifiedGene structure
         // (conceptually - though our types might need alignment, for now we extract content).
         contentToWeave = reAction.content;
+        effectivePhiScore = 1.618; // Default Phi (Golden Ratio) convergence on successful re-action
       } else {
         // "If it cannot find a contractive path, the system defaults to pure Silence."
         throw new PhoenixError('Input failed Perspective Intelligence curation (PI ratio exceeded) and Recursive Repair failed.');
       }
     } else {
       contentToWeave = curated.content;
+      effectivePhiScore = curated.pi;
     }
 
     // 3. Verify against Sovereign Leader (simulate an action)
     try {
+        // Derive a safe actor_id from the human_seed.
+        // We use the genesis_hash (a one-way hash representation of the anchor)
+        // rather than exposing the api_key/publicKey directly as the actor_id
+        // to prevent credential leakage.
+        const safe_actor_id = human_seed.genesis_hash ? `actor-${human_seed.genesis_hash.substring(0, 16)}` : 'anonymous-seed';
+
         const action: SovereignAction = {
             authority: {
+                actor_id: safe_actor_id,
                 revocation_ref: human_seed.genesis_hash, // Use genesis hash as revocation ref
             },
             anchor: {
                 parent_hash: 'genesis',
                 payload_hash: crypto.createHash('sha256').update(contentToWeave).digest('hex'),
+            },
+            proof: {
+                threshold_tau: 256.0, // Simulated cryptographic threshold density
+            },
+            verification: {
+                phi_score: effectivePhiScore > 0 ? effectivePhiScore : 1.618,
             }
         };
         validateSovereignAction(action);

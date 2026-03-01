@@ -50,6 +50,6 @@ export interface SovereignVerification {
 export interface SovereignAction {
   authority: SovereignAuthority;
   anchor: SovereignAnchor;
-  proof?: SovereignProof;
-  verification?: SovereignVerification;
+  proof: SovereignProof;
+  verification: SovereignVerification;
 }

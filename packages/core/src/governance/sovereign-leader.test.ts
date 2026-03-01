@@ -22,6 +22,12 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       parent_hash: 'sha256:previous-block-hash',
       payload_hash: 'sha256:current-action-hash',
     },
+    proof: {
+      threshold_tau: 256.0,
+    },
+    verification: {
+      phi_score: 1.618,
+    },
   };
 
   it('MUST PASS when action is accompanied by a revocable authority token and anchor', () => {
@@ -66,6 +72,58 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
     };
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
       /parent_hash/
+    );
+  });
+
+  it('MUST FAIL when cryptographic proof is missing', () => {
+    const invalidAction = { ...validAction };
+    // @ts-ignore - deliberately removing required field for test
+    delete invalidAction.proof;
+
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      SovereignViolationError
+    );
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      /cryptographic proof/
+    );
+  });
+
+  it('MUST FAIL when cryptographic proof lacks valid threshold_tau', () => {
+    const invalidAction: SovereignAction = {
+      ...validAction,
+      proof: { threshold_tau: 0 },
+    };
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      SovereignViolationError
+    );
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      /valid threshold_tau/
+    );
+  });
+
+  it('MUST FAIL when verification metric is missing', () => {
+    const invalidAction = { ...validAction };
+    // @ts-ignore - deliberately removing required field for test
+    delete invalidAction.verification;
+
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      SovereignViolationError
+    );
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      /verification metrics/
+    );
+  });
+
+  it('MUST FAIL when verification metric lacks valid phi_score', () => {
+    const invalidAction: SovereignAction = {
+      ...validAction,
+      verification: { phi_score: -1.0 },
+    };
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      SovereignViolationError
+    );
+    expect(() => validateSovereignAction(invalidAction)).toThrowError(
+      /valid phi_score/
     );
   });
 });

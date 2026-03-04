@@ -135,25 +135,23 @@ class GlobToolInvocation extends BaseToolInvocation<
       const fileDiscovery = this.config.getFileService();
 
       // Collect entries from all search directories
-      let allEntries: GlobPath[] = [];
+      const entriesArrays = await Promise.all(
+        searchDirectories.map(async (searchDir) => {
+          return (await glob(this.params.pattern, {
+            cwd: searchDir,
+            withFileTypes: true,
+            nodir: true,
+            stat: true,
+            nocase: !this.params.case_sensitive,
+            dot: true,
+            ignore: ['**/node_modules/**', '**/.git/**'],
+            follow: false,
+            signal,
+          })) as GlobPath[];
+        }),
+      );
 
-      for (const searchDir of searchDirectories) {
-        const entries = (await glob(this.params.pattern, {
-          cwd: searchDir,
-          withFileTypes: true,
-          nodir: true,
-          stat: true,
-          nocase: !this.params.case_sensitive,
-          dot: true,
-          ignore: ['**/node_modules/**', '**/.git/**'],
-          follow: false,
-          signal,
-        })) as GlobPath[];
-
-        allEntries = allEntries.concat(entries);
-      }
-
-      const entries = allEntries;
+      const entries = entriesArrays.flat();
 
       // Apply git-aware filtering if enabled and in git repository
       let filteredEntries = entries;

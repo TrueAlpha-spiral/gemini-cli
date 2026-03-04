@@ -328,7 +328,6 @@ describe('ShellExecutionService', () => {
         cp.emit('exit', 0, null);
       });
 
-      // FIX: Provide explicit type for the 'call' parameter in the map function.
       const eventTypes = onOutputEventMock.mock.calls.map(
         (call: [ShellOutputEvent]) => call[0].type,
       );

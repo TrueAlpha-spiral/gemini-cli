@@ -5,17 +5,28 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useFolderTrust } from './useFolderTrust.js';
 import { LoadedSettings, SettingScope } from '../../config/settings.js';
 import { FolderTrustChoice } from '../components/FolderTrustDialog.js';
 
 describe('useFolderTrust', () => {
-  it('should set isFolderTrustDialogOpen to true when folderTrustFeature is true and folderTrust is undefined', () => {
+  const originalCwd = process.cwd;
+
+  beforeEach(() => {
+    process.cwd = vi.fn().mockReturnValue('/test/current/dir');
+  });
+
+  afterEach(() => {
+    process.cwd = originalCwd;
+    vi.restoreAllMocks();
+  });
+
+  it('should set isFolderTrustDialogOpen to true when folderTrustFeature is true and path is not trusted', () => {
     const settings = {
       merged: {
         folderTrustFeature: true,
-        folderTrust: undefined,
+        trustedFolders: undefined,
       },
       setValue: vi.fn(),
     } as unknown as LoadedSettings;
@@ -29,7 +40,7 @@ describe('useFolderTrust', () => {
     const settings = {
       merged: {
         folderTrustFeature: false,
-        folderTrust: undefined,
+        trustedFolders: undefined,
       },
       setValue: vi.fn(),
     } as unknown as LoadedSettings;
@@ -39,11 +50,11 @@ describe('useFolderTrust', () => {
     expect(result.current.isFolderTrustDialogOpen).toBe(false);
   });
 
-  it('should set isFolderTrustDialogOpen to false when folderTrust is defined', () => {
+  it('should set isFolderTrustDialogOpen to false when path is trusted', () => {
     const settings = {
       merged: {
         folderTrustFeature: true,
-        folderTrust: true,
+        trustedFolders: ['/test/current/dir'],
       },
       setValue: vi.fn(),
     } as unknown as LoadedSettings;
@@ -53,11 +64,25 @@ describe('useFolderTrust', () => {
     expect(result.current.isFolderTrustDialogOpen).toBe(false);
   });
 
-  it('should call setValue and set isFolderTrustDialogOpen to false on handleFolderTrustSelect', () => {
+  it('should set isFolderTrustDialogOpen to false when a parent path is trusted', () => {
     const settings = {
       merged: {
         folderTrustFeature: true,
-        folderTrust: undefined,
+        trustedFolders: ['/test'],
+      },
+      setValue: vi.fn(),
+    } as unknown as LoadedSettings;
+
+    const { result } = renderHook(() => useFolderTrust(settings));
+
+    expect(result.current.isFolderTrustDialogOpen).toBe(false);
+  });
+
+  it('should call setValue with current folder and set isFolderTrustDialogOpen to false on handleFolderTrustSelect(TRUST_FOLDER)', () => {
+    const settings = {
+      merged: {
+        folderTrustFeature: true,
+        trustedFolders: undefined,
       },
       setValue: vi.fn(),
     } as unknown as LoadedSettings;
@@ -70,9 +95,51 @@ describe('useFolderTrust', () => {
 
     expect(settings.setValue).toHaveBeenCalledWith(
       SettingScope.User,
-      'folderTrust',
-      true,
+      'trustedFolders',
+      ['/test/current/dir'],
     );
+    expect(result.current.isFolderTrustDialogOpen).toBe(false);
+  });
+
+  it('should call setValue with parent folder and set isFolderTrustDialogOpen to false on handleFolderTrustSelect(TRUST_PARENT)', () => {
+    const settings = {
+      merged: {
+        folderTrustFeature: true,
+        trustedFolders: undefined,
+      },
+      setValue: vi.fn(),
+    } as unknown as LoadedSettings;
+
+    const { result } = renderHook(() => useFolderTrust(settings));
+
+    act(() => {
+      result.current.handleFolderTrustSelect(FolderTrustChoice.TRUST_PARENT);
+    });
+
+    expect(settings.setValue).toHaveBeenCalledWith(
+      SettingScope.User,
+      'trustedFolders',
+      ['/test/current'],
+    );
+    expect(result.current.isFolderTrustDialogOpen).toBe(false);
+  });
+
+  it('should not call setValue but set isFolderTrustDialogOpen to false on handleFolderTrustSelect(DO_NOT_TRUST)', () => {
+    const settings = {
+      merged: {
+        folderTrustFeature: true,
+        trustedFolders: undefined,
+      },
+      setValue: vi.fn(),
+    } as unknown as LoadedSettings;
+
+    const { result } = renderHook(() => useFolderTrust(settings));
+
+    act(() => {
+      result.current.handleFolderTrustSelect(FolderTrustChoice.DO_NOT_TRUST);
+    });
+
+    expect(settings.setValue).not.toHaveBeenCalled();
     expect(result.current.isFolderTrustDialogOpen).toBe(false);
   });
 });

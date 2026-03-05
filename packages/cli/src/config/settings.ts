@@ -120,6 +120,7 @@ export interface Settings {
   folderTrustFeature?: boolean;
   // Setting to track whether Folder trust is enabled.
   folderTrust?: boolean;
+  trustedFolders?: string[];
 
   // Setting to track if the user has seen the IDE integration nudge.
   hasSeenIdeIntegrationNudge?: boolean;

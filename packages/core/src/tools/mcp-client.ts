@@ -774,8 +774,7 @@ export async function connectToMcpServer(
               );
               try {
                 await mcpClient.connect(oauthTransport, {
-                  timeout:
-                    mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
+                  timeout: mcpServerConfig.timeout ?? MCP_DEFAULT_TIMEOUT_MSEC,
                 });
                 // Connection successful with OAuth
                 return mcpClient;

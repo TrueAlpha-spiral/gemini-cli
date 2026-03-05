@@ -52,7 +52,10 @@ describe('LSTool Performance', () => {
   const files = Array.from({ length: fileCount }, (_, i) => `file_${i}.ts`);
 
   // Generate 20 ignore patterns
-  const ignorePatterns = Array.from({ length: ignoreCount }, (_, i) => `ignore_${i}.ts`);
+  const ignorePatterns = Array.from(
+    { length: ignoreCount },
+    (_, i) => `ignore_${i}.ts`,
+  );
 
   // Mock fs.readdirSync to return these files
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,10 +72,14 @@ describe('LSTool Performance', () => {
     return { isDirectory: () => false, mtime: new Date(), size: 1024 } as any;
   });
 
-  bench('LSTool.execute with 10k files and 20 patterns', async () => {
-    await tool.execute(
-      { path: testPath, ignore: ignorePatterns },
-      new AbortController().signal
-    );
-  }, { time: 1000 });
+  bench(
+    'LSTool.execute with 10k files and 20 patterns',
+    async () => {
+      await tool.execute(
+        { path: testPath, ignore: ignorePatterns },
+        new AbortController().signal,
+      );
+    },
+    { time: 1000 },
+  );
 });

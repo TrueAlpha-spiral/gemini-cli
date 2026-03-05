@@ -91,8 +91,7 @@ describe('fetchWithTimeout', () => {
   it('should throw FetchError with ETIMEDOUT code when request times out', async () => {
     // Mock fetch to simulate timeout behavior
     (fetch as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      (url: string, options: { signal: AbortSignal }) => {
-        return new Promise((_, reject) => {
+      (url: string, options: { signal: AbortSignal }) => new Promise((_, reject) => {
           if (options.signal.aborted) {
             const error = new Error('The operation was aborted');
             (error as any).code = 'ABORT_ERR';
@@ -104,8 +103,7 @@ describe('fetchWithTimeout', () => {
               reject(error);
             });
           }
-        });
-      },
+        }),
     );
 
     const promise = fetchWithTimeout('http://example.com', 1000);

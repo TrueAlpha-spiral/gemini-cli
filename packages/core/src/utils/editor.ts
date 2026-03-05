@@ -147,10 +147,14 @@ export function getDiffCommand(
       };
     case 'emacs':
       // Escape paths for Elisp string literals
-      const escapeLispString = (s: string) => s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      const escapeLispString = (s: string) =>
+        s.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
       return {
         command: 'emacs',
-        args: ['--eval', `(ediff "${escapeLispString(oldPath)}" "${escapeLispString(newPath)}")`],
+        args: [
+          '--eval',
+          `(ediff "${escapeLispString(oldPath)}" "${escapeLispString(newPath)}")`,
+        ],
       };
     default:
       return null;

@@ -43,10 +43,10 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       },
     };
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      SovereignViolationError
+      SovereignViolationError,
     );
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /revocation capability/
+      /revocation capability/,
     );
   });
 
@@ -56,10 +56,10 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
     } as SovereignAction;
 
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      SovereignViolationError
+      SovereignViolationError,
     );
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /anchored/
+      /anchored/,
     );
   });
 
@@ -71,7 +71,7 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       } as any,
     };
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /parent_hash/
+      /parent_hash/,
     );
   });
 
@@ -81,10 +81,10 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
     delete invalidAction.proof;
 
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      SovereignViolationError
+      SovereignViolationError,
     );
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /cryptographic proof/
+      /cryptographic proof/,
     );
   });
 
@@ -94,10 +94,10 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       proof: { threshold_tau: 0 },
     };
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      SovereignViolationError
+      SovereignViolationError,
     );
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /valid threshold_tau/
+      /valid threshold_tau/,
     );
   });
 
@@ -107,10 +107,10 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
     delete invalidAction.verification;
 
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      SovereignViolationError
+      SovereignViolationError,
     );
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /verification metrics/
+      /verification metrics/,
     );
   });
 
@@ -120,10 +120,10 @@ describe('Sovereign Leadership Invariant (SOV-LEAD-001)', () => {
       verification: { phi_score: -1.0 },
     };
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      SovereignViolationError
+      SovereignViolationError,
     );
     expect(() => validateSovereignAction(invalidAction)).toThrowError(
-      /valid phi_score/
+      /valid phi_score/,
     );
   });
 });

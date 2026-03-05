@@ -16,7 +16,8 @@ describe('BanachCurationOperator', () => {
   });
 
   it('should contract high-entropy inputs (f_pi)', () => {
-    const input = 'This is a long string with some variability that needs contraction.';
+    const input =
+      'This is a long string with some variability that needs contraction.';
     const contracted = operator.apply(input);
 
     // Contracted content should be shorter or same length
@@ -30,7 +31,7 @@ describe('BanachCurationOperator', () => {
     // If input was already small, apply() might return it as is.
     // If input was large, d_out should be significantly smaller.
     if (d_in > 0) {
-        expect(d_out).toBeLessThan(d_in);
+      expect(d_out).toBeLessThan(d_in);
     }
   });
 
@@ -43,19 +44,20 @@ describe('BanachCurationOperator', () => {
     // In our simulation, apply() forces the condition or returns stable state.
     // If apply() changes the state, it must satisfy the condition.
     if (input !== contracted) {
-        expect(isValid).toBe(true);
+      expect(isValid).toBe(true);
     }
   });
 
   it('should reach a fixed point (convergence)', () => {
-    let current = 'A very long initial state to simulate convergence process...';
+    let current =
+      'A very long initial state to simulate convergence process...';
     let previous = '';
     let iterations = 0;
 
     while (current !== previous && iterations < 10) {
-        previous = current;
-        current = operator.apply(current);
-        iterations++;
+      previous = current;
+      current = operator.apply(current);
+      iterations++;
     }
 
     // Eventually it stabilizes

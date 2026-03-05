@@ -44,8 +44,8 @@ export class RecursiveRuntime {
     // Re-computation applies f_pi recursively until Delta(S') <= Phi^-1 * Delta(S_failed).
 
     // Attempt to curate/contract the failed state
-    let currentContent = failedState;
-    let currentDelta = delta_failed;
+    const currentContent = failedState;
+    const currentDelta = delta_failed;
 
     // Target is stricter than normal: it must be a contraction of the *failed* state
     // to prove we have repaired the turbulence.
@@ -69,15 +69,18 @@ export class RecursiveRuntime {
     // Here we strictly validate it against the *original failure*.
 
     if (recomputedDelta <= targetDelta) {
-        // Success: The [Re-Action] resolved into a valid TAS_Gene.
-        return {
-            content: recomputedContent,
-            // Signature includes the "re-action" marker (hash of failure) to preserve lineage causality
-            signature: crypto.createHash('sha256').update(recomputedContent + seed.genesis_hash + 'REACTION').digest('hex'),
-            genesis_hash: seed.genesis_hash,
-            raw_prompt: failedState, // The origin was the failed state
-            human_seed: seed
-        };
+      // Success: The [Re-Action] resolved into a valid TAS_Gene.
+      return {
+        content: recomputedContent,
+        // Signature includes the "re-action" marker (hash of failure) to preserve lineage causality
+        signature: crypto
+          .createHash('sha256')
+          .update(recomputedContent + seed.genesis_hash + 'REACTION')
+          .digest('hex'),
+        genesis_hash: seed.genesis_hash,
+        raw_prompt: failedState, // The origin was the failed state
+        human_seed: seed,
+      };
     }
 
     // "If it cannot find a contractive path, the system defaults to pure Silence."

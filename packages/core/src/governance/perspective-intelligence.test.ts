@@ -25,7 +25,8 @@ describe('PerspectiveIntelligenceEngine', () => {
     const C = engine.calculateCircumference(input);
     expect(C).toBeGreaterThan(0);
 
-    const complexInput = 'A more complex prompt with greater entropy and variability.';
+    const complexInput =
+      'A more complex prompt with greater entropy and variability.';
     const C_complex = engine.calculateCircumference(complexInput);
     expect(C_complex).toBeGreaterThan(C);
   });
@@ -55,7 +56,9 @@ describe('PerspectiveIntelligenceEngine', () => {
 
   it('should reject inputs with excessive stochastic variability (High PI)', () => {
     // Generate a very long, high-entropy string to simulate "noise" or "turbulence"
-    const noise = Array.from({ length: 5000 }, (_, i) => String.fromCharCode(i % 128)).join('');
+    const noise = Array.from({ length: 5000 }, (_, i) =>
+      String.fromCharCode(i % 128),
+    ).join('');
     // This should result in a high C, and likely PI > 10.0 given d=256.
     // C approx 5000 (if unique chars is high? No, unique chars is max 128).
     // ratio = 128/5000 = 0.0256. C = 5000 * 0.0256 = 128.

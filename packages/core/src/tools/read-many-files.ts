@@ -326,8 +326,8 @@ Use this tool when the user's query implies needing the content of several files
       const allEntries = new Set<string>();
       const workspaceDirs = this.config.getWorkspaceContext().getDirectories();
 
-      for (const dir of workspaceDirs) {
-        const entriesInDir = await glob(
+      const globPromises = workspaceDirs.map((dir) =>
+        glob(
           searchPatterns.map((p) => p.replace(/\\/g, '/')),
           {
             cwd: dir,
@@ -338,7 +338,12 @@ Use this tool when the user's query implies needing the content of several files
             nocase: true,
             signal,
           },
-        );
+        ),
+      );
+
+      const entriesInDirs = await Promise.all(globPromises);
+
+      for (const entriesInDir of entriesInDirs) {
         for (const entry of entriesInDir) {
           allEntries.add(entry);
         }

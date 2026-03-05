@@ -5,7 +5,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PersistentRootKernel, PhoenixError } from './persistent-root-kernel.js';
+import {
+  PersistentRootKernel,
+  PhoenixError,
+} from './persistent-root-kernel.js';
 import * as crypto from 'node:crypto';
 
 describe('PersistentRootKernel', () => {
@@ -71,21 +74,23 @@ describe('PersistentRootKernel', () => {
     // 5000 -> 4500 -> ... until < target.
     // If it succeeds, we get a verified output that is a contracted version of the input.
 
-    const turbulence = Array.from({ length: 5000 }, (_, i) => String.fromCharCode((i % 94) + 33)).join('');
+    const turbulence = Array.from({ length: 5000 }, (_, i) =>
+      String.fromCharCode((i % 94) + 33),
+    ).join('');
 
     const result = await kernel.evaluate_cognitive_stream(turbulence);
 
     if (result.type === 'verified_output') {
-       // It succeeded via repair!
-       expect(result.content.length).toBeLessThan(turbulence.length);
-       expect(result.content.length).toBeGreaterThan(0);
+      // It succeeded via repair!
+      expect(result.content.length).toBeLessThan(turbulence.length);
+      expect(result.content.length).toBeGreaterThan(0);
     } else {
-       // If it failed completely, verify the reason contains "Recursive Repair failed"
-       // But our goal is to prove it *can* repair.
-       // The simulated banach apply() works by slicing 10% per step up to 100 steps.
-       // 5000 * 0.9^n < target?
-       // It should eventually converge.
-       expect(result.type).toBe('verified_output');
+      // If it failed completely, verify the reason contains "Recursive Repair failed"
+      // But our goal is to prove it *can* repair.
+      // The simulated banach apply() works by slicing 10% per step up to 100 steps.
+      // 5000 * 0.9^n < target?
+      // It should eventually converge.
+      expect(result.type).toBe('verified_output');
     }
   });
 });

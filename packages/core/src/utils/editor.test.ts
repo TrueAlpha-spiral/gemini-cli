@@ -308,7 +308,11 @@ describe('editor utils', () => {
     });
 
     it('should escape paths for emacs', () => {
-      const command = getDiffCommand('old "file".txt', 'new\\file.txt', 'emacs');
+      const command = getDiffCommand(
+        'old "file".txt',
+        'new\\file.txt',
+        'emacs',
+      );
       expect(command).toEqual({
         command: 'emacs',
         args: ['--eval', '(ediff "old \\"file\\".txt" "new\\\\file.txt")'],
@@ -406,7 +410,7 @@ describe('editor utils', () => {
           {
             stdio: 'inherit',
             encoding: 'utf8',
-          }
+          },
         );
       });
     }

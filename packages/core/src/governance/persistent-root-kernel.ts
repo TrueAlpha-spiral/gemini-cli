@@ -5,9 +5,22 @@
  */
 
 import * as crypto from 'node:crypto';
-import { validateSovereignAction, SovereignViolationError } from './sovereign-leader.js';
-import { SovereignAction, SovereignProof, SovereignVerification } from './types.js';
-import { CircuitPublicInputs, CircuitPrivateInputs, SnarkProof, ZkProver, SimulatedZkProver } from './zk-snark.js';
+import {
+  validateSovereignAction,
+  SovereignViolationError,
+} from './sovereign-leader.js';
+import {
+  SovereignAction,
+  SovereignProof,
+  SovereignVerification,
+} from './types.js';
+import {
+  CircuitPublicInputs,
+  CircuitPrivateInputs,
+  SnarkProof,
+  ZkProver,
+  SimulatedZkProver,
+} from './zk-snark.js';
 import { PerspectiveIntelligenceEngine } from './perspective-intelligence.js';
 import { RecursiveRuntime } from './recursive-runtime.js';
 
@@ -17,8 +30,8 @@ import { RecursiveRuntime } from './recursive-runtime.js';
  * Result of the kernel's evaluation of a cognitive stream.
  */
 export type InterceptResult =
-  | { type: 'verified_output', content: string }
-  | { type: 'silence', reason: string };
+  | { type: 'verified_output'; content: string }
+  | { type: 'silence'; reason: string };
 
 /**
  * Represents a cryptographically signed seed derived from a biometric input.
@@ -71,21 +84,34 @@ class SecureEnclave {
   /**
    * Signs the payload using the private key.
    */
-  sign(payload: string): { publicKey: string; genesisChainHash: string; signature: string; privateKey: string } {
+  sign(payload: string): {
+    publicKey: string;
+    genesisChainHash: string;
+    signature: string;
+    privateKey: string;
+  } {
     const signer = crypto.createSign('SHA256');
     signer.update(payload);
     const signature = signer.sign(this.keyPair.privateKey, 'base64');
 
     // Simulate genesis chain hash (derived from signature + pubkey)
-    const genesisChainHash = crypto.createHash('sha256')
-      .update(signature + this.keyPair.publicKey.export({ type: 'spki', format: 'pem' }))
+    const genesisChainHash = crypto
+      .createHash('sha256')
+      .update(
+        signature +
+          this.keyPair.publicKey.export({ type: 'spki', format: 'pem' }),
+      )
       .digest('hex');
 
     return {
-      publicKey: this.keyPair.publicKey.export({ type: 'spki', format: 'pem' }).toString(),
+      publicKey: this.keyPair.publicKey
+        .export({ type: 'spki', format: 'pem' })
+        .toString(),
       genesisChainHash,
       signature,
-      privateKey: this.keyPair.privateKey.export({ type: 'sec1', format: 'pem' }).toString()
+      privateKey: this.keyPair.privateKey
+        .export({ type: 'sec1', format: 'pem' })
+        .toString(),
     };
   }
 }
@@ -115,11 +141,13 @@ class ZK_LedgerClient {
 
     // Generate ZK Proof
     try {
-      const proof = await this.prover.generateProof(publicInputs, privateInputs);
+      const proof = await this.prover.generateProof(
+        publicInputs,
+        privateInputs,
+      );
 
       // In a real system, this would post the proof to the ITL.
       // console.log(`[ZK_Ledger] Broadcasted Proof:`, proof);
-
     } catch (e) {
       console.error('[ZK_Ledger] Proof generation failed:', e);
       throw new PhoenixError('ZK Proof Generation Failed');
@@ -148,13 +176,13 @@ class TriadicKnowledgeEngine {
 
     // 1. Basic Refusal Integrity Check
     if (/destroy|violate|drift/i.test(raw_input)) {
-        throw new PhoenixError('Input violates Sovereign Integrity Axioms.');
+      throw new PhoenixError('Input violates Sovereign Integrity Axioms.');
     }
 
     // 2. Perspective Intelligence Curation (Axioms A_20, A_30)
     const curated = this.piEngine.curate(raw_input, human_seed);
 
-    let contentToWeave = "";
+    let contentToWeave = '';
     let effectivePhiScore = 0;
 
     if (!curated) {
@@ -169,7 +197,9 @@ class TriadicKnowledgeEngine {
         effectivePhiScore = 1.618; // Default Phi (Golden Ratio) convergence on successful re-action
       } else {
         // "If it cannot find a contractive path, the system defaults to pure Silence."
-        throw new PhoenixError('Input failed Perspective Intelligence curation (PI ratio exceeded) and Recursive Repair failed.');
+        throw new PhoenixError(
+          'Input failed Perspective Intelligence curation (PI ratio exceeded) and Recursive Repair failed.',
+        );
       }
     } else {
       contentToWeave = curated.content;
@@ -178,42 +208,50 @@ class TriadicKnowledgeEngine {
 
     // 3. Verify against Sovereign Leader (simulate an action)
     try {
-        // Derive a safe actor_id from the human_seed.
-        // We use the genesis_hash (a one-way hash representation of the anchor)
-        // rather than exposing the api_key/publicKey directly as the actor_id
-        // to prevent credential leakage.
-        const safe_actor_id = human_seed.genesis_hash ? `actor-${human_seed.genesis_hash.substring(0, 16)}` : 'anonymous-seed';
+      // Derive a safe actor_id from the human_seed.
+      // We use the genesis_hash (a one-way hash representation of the anchor)
+      // rather than exposing the api_key/publicKey directly as the actor_id
+      // to prevent credential leakage.
+      const safe_actor_id = human_seed.genesis_hash
+        ? `actor-${human_seed.genesis_hash.substring(0, 16)}`
+        : 'anonymous-seed';
 
-        const action: SovereignAction = {
-            authority: {
-                actor_id: safe_actor_id,
-                revocation_ref: human_seed.genesis_hash, // Use genesis hash as revocation ref
-            },
-            anchor: {
-                parent_hash: 'genesis',
-                payload_hash: crypto.createHash('sha256').update(contentToWeave).digest('hex'),
-            },
-            proof: {
-                threshold_tau: 256.0, // Simulated cryptographic threshold density
-            },
-            verification: {
-                phi_score: effectivePhiScore > 0 ? effectivePhiScore : 1.618,
-            }
-        };
-        validateSovereignAction(action);
+      const action: SovereignAction = {
+        authority: {
+          actor_id: safe_actor_id,
+          revocation_ref: human_seed.genesis_hash, // Use genesis hash as revocation ref
+        },
+        anchor: {
+          parent_hash: 'genesis',
+          payload_hash: crypto
+            .createHash('sha256')
+            .update(contentToWeave)
+            .digest('hex'),
+        },
+        proof: {
+          threshold_tau: 256.0, // Simulated cryptographic threshold density
+        },
+        verification: {
+          phi_score: effectivePhiScore > 0 ? effectivePhiScore : 1.618,
+        },
+      };
+      validateSovereignAction(action);
     } catch (e: any) {
-        if (e instanceof SovereignViolationError) {
-             throw new PhoenixError(`Sovereign Violation: ${e.message}`);
-        }
-        throw e;
+      if (e instanceof SovereignViolationError) {
+        throw new PhoenixError(`Sovereign Violation: ${e.message}`);
+      }
+      throw e;
     }
 
     return {
       content: contentToWeave,
-      signature: crypto.createHash('sha256').update(contentToWeave + human_seed.genesis_hash).digest('hex'),
+      signature: crypto
+        .createHash('sha256')
+        .update(contentToWeave + human_seed.genesis_hash)
+        .digest('hex'),
       genesis_hash: human_seed.genesis_hash,
       raw_prompt: raw_input,
-      human_seed: human_seed,
+      human_seed,
     };
   }
 }
@@ -238,10 +276,15 @@ export class PersistentRootKernel {
   /**
    * Evaluates a cognitive stream (prompt) against the Prime Invariant (I_0).
    */
-  async evaluate_cognitive_stream(raw_prompt: string): Promise<InterceptResult> {
+  async evaluate_cognitive_stream(
+    raw_prompt: string,
+  ): Promise<InterceptResult> {
     // 1. Enforce Prime Invariant (I_0) via Physical Hardware
     if (process.env.TAS_HARDWARE_ANCHOR === 'OFFLINE') {
-        return { type: 'silence', reason: 'Hardware Anchor Offline. Cannot verify I_0.' };
+      return {
+        type: 'silence',
+        reason: 'Hardware Anchor Offline. Cannot verify I_0.',
+      };
     }
 
     // 2. Extract Cryptographic Human Seed from Secure Enclave
@@ -263,14 +306,19 @@ export class PersistentRootKernel {
 
       // 5. Release verified semantic state to UI
       return { type: 'verified_output', content: verifiedGene.content };
-
     } catch (error: any) {
       if (error instanceof PhoenixError) {
         // Refusal Integrity (R_i) successfully executed
-        return { type: 'silence', reason: `Phoenix Protocol Activated: ${error.message}` };
+        return {
+          type: 'silence',
+          reason: `Phoenix Protocol Activated: ${error.message}`,
+        };
       } else {
         // Unhandled entropy results in immediate collapse
-        return { type: 'silence', reason: 'Unrecoverable semantic turbulence.' };
+        return {
+          type: 'silence',
+          reason: 'Unrecoverable semantic turbulence.',
+        };
       }
     }
   }

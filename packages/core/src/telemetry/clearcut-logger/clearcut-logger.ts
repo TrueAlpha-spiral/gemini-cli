@@ -277,9 +277,14 @@ export class ClearcutLogger {
       .then(({ buffer }) => {
         try {
           this.last_flush_time = Date.now();
-          return this.decodeLogResponse(buffer) || {};
+          const response = this.decodeLogResponse(buffer);
+          if (response instanceof Error) {
+            console.error('Error decoding log response:', response);
+            return {};
+          }
+          return response || {};
         } catch (error: unknown) {
-          console.error('Error decoding log response:', error);
+          console.error('Unexpected error decoding log response:', error);
           return {};
         }
       })
@@ -312,18 +317,17 @@ export class ClearcutLogger {
   }
 
   // Visible for testing. Decodes protobuf-encoded response from Clearcut server.
-  decodeLogResponse(buf: Buffer): LogResponse | undefined {
-    // TODO(obrienowen): return specific errors to facilitate debugging.
+  decodeLogResponse(buf: Buffer): LogResponse | Error {
     if (buf.length < 1) {
-      return undefined;
+      return new Error('Empty buffer received from Clearcut');
     }
 
     // The first byte of the buffer is `field<<3 | type`. We're looking for field
     // 1, with type varint, represented by type=0. If the first byte isn't 8, that
     // means field 1 is missing or the message is corrupted. Either way, we return
-    // undefined.
+    // an Error.
     if (buf.readUInt8(0) !== 8) {
-      return undefined;
+      return new Error('Invalid or missing field 1 in Clearcut response');
     }
 
     let ms = BigInt(0);
@@ -341,7 +345,9 @@ export class ClearcutLogger {
     if (cont) {
       // We have fallen off the buffer without seeing a terminating byte. The
       // message is corrupted.
-      return undefined;
+      return new Error(
+        'Corrupted Clearcut response message: premature end of buffer',
+      );
     }
 
     const returnVal = {

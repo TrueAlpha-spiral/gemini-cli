@@ -198,6 +198,45 @@ describe('ClearcutLogger', () => {
     });
   });
 
+  describe('decodeLogResponse', () => {
+    it('should parse valid responses', () => {
+      // 08 E8 07 (field 1, varint, 1000)
+      const validBuffer = Buffer.from([8, 232, 7]);
+      const result = logger!.decodeLogResponse(validBuffer);
+      expect(result).toBeDefined();
+      expect(result!.nextRequestWaitMs).toBe(1000);
+    });
+
+    it('should return an error for an empty buffer', () => {
+      const emptyBuffer = Buffer.from([]);
+      const result = logger!.decodeLogResponse(emptyBuffer);
+      expect(result).toBeInstanceOf(Error);
+      expect((result as Error).message).toBe(
+        'Empty buffer received from Clearcut',
+      );
+    });
+
+    it('should return an error for invalid field or type in the first byte', () => {
+      // e.g. not 8
+      const invalidBuffer = Buffer.from([9, 232, 7]);
+      const result = logger!.decodeLogResponse(invalidBuffer);
+      expect(result).toBeInstanceOf(Error);
+      expect((result as Error).message).toBe(
+        'Invalid or missing field 1 in Clearcut response',
+      );
+    });
+
+    it('should return an error for a corrupted message with a premature end', () => {
+      // 08 followed by a byte with continuation bit set but no subsequent bytes
+      const corruptedBuffer = Buffer.from([8, 0x80]);
+      const result = logger!.decodeLogResponse(corruptedBuffer);
+      expect(result).toBeInstanceOf(Error);
+      expect((result as Error).message).toBe(
+        'Corrupted Clearcut response message: premature end of buffer',
+      );
+    });
+  });
+
   describe('requeueFailedEvents logic', () => {
     it('should limit the number of requeued events to max_retry_events', () => {
       const maxRetryEvents = getMaxRetryEvents(logger!);

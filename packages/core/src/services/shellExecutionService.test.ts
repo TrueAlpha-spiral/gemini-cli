@@ -49,12 +49,10 @@ describe('ShellExecutionService', () => {
 
     mockChildProcess = new EventEmitter() as EventEmitter &
       Partial<ChildProcess>;
-    // FIX: Cast simple EventEmitters to the expected stream type.
     mockChildProcess.stdout = new EventEmitter() as Readable;
     mockChildProcess.stderr = new EventEmitter() as Readable;
     mockChildProcess.kill = vi.fn();
 
-    // FIX: Use Object.defineProperty to set the readonly 'pid' property.
     Object.defineProperty(mockChildProcess, 'pid', {
       value: 12345,
       configurable: true,
@@ -328,7 +326,6 @@ describe('ShellExecutionService', () => {
         cp.emit('exit', 0, null);
       });
 
-      // FIX: Provide explicit type for the 'call' parameter in the map function.
       const eventTypes = onOutputEventMock.mock.calls.map(
         (call: [ShellOutputEvent]) => call[0].type,
       );

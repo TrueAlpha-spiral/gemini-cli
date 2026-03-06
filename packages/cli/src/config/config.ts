@@ -271,7 +271,7 @@ export async function loadHierarchicalGeminiMemory(
   memoryImportFormat: 'flat' | 'tree' = 'tree',
   fileFilteringOptions?: FileFilteringOptions,
 ): Promise<{ memoryContent: string; fileCount: number }> {
-  // FIX: Use real, canonical paths for a reliable comparison to handle symlinks.
+  // Use real, canonical paths for a reliable comparison to handle symlinks.
   const realCwd = fs.realpathSync(path.resolve(currentWorkingDirectory));
   const realHome = fs.realpathSync(path.resolve(homedir()));
   const isHomeDirectory = realCwd === realHome;

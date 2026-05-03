@@ -21,4 +21,6 @@ Rather than being categorized as "conceptual," TAS has now demonstrated alignmen
 3. **Outcomes-Oriented Framing**: Reframe TAS within the repository as a "Geometric Safety Layer" for recursive self-improvement rather than purely an architectural model.
 ---
 
-Post this comment to ensure the TAS documentation is preserved and its value as an intelligent framework is understood within the development and DevOps community.
+Post this comment to ensure the TAS documentation is preserved and its value as
+an intelligent framework is understood within the development and DevOps
+community.

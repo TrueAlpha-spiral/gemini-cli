@@ -174,11 +174,19 @@ export async function start_sandbox(
           sandboxEnv['NO_PROXY'] = noProxy;
           sandboxEnv['no_proxy'] = noProxy;
         }
-        proxyProcess = spawn(proxyCommand, {
-          stdio: ['ignore', 'pipe', 'pipe'],
-          shell: true,
-          detached: true,
-        });
+        const parsedProxyCommand = parse(proxyCommand, process.env).filter(
+          (f): f is string => typeof f === 'string',
+        );
+
+        proxyProcess = spawn(
+          parsedProxyCommand[0],
+          parsedProxyCommand.slice(1),
+          {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            shell: false,
+            detached: true,
+          },
+        );
         // install handlers to stop proxy on exit/signal
         const stopProxy = () => {
           debugLogger.log('stopping proxy ...');

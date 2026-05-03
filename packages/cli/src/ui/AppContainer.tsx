@@ -160,7 +160,7 @@ import {
 import { LoginWithGoogleRestartDialog } from './auth/LoginWithGoogleRestartDialog.js';
 import { NewAgentsChoice } from './components/NewAgentsNotification.js';
 import { isSlashCommand } from './utils/commandUtils.js';
-import { parseSlashCommand } from '../utils/commands.js';
+import { parseSlashCommand, buildCommandLookupMap } from '../utils/commands.js';
 import { useTerminalTheme } from './hooks/useTerminalTheme.js';
 import { useTimedMessage } from './hooks/useTimedMessage.js';
 import { useIsHelpDismissKey } from './utils/shortcutsHelp.js';
@@ -1285,9 +1285,10 @@ Logging in with Google... Restarting Gemini CLI to continue.
         isToolExecuting(pendingHistoryItems);
 
       if (isSlash && isAgentRunning) {
+        const commandMap = buildCommandLookupMap(slashCommands ?? []);
         const { commandToExecute } = parseSlashCommand(
           submittedValue,
-          slashCommands ?? [],
+          commandMap,
         );
         if (commandToExecute?.isSafeConcurrent) {
           void handleSlashCommand(submittedValue);

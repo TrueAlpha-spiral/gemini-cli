@@ -8,6 +8,7 @@ import { debugLogger, coreEvents } from '@google/gemini-cli-core';
 import type { SlashCommand } from '../ui/commands/types.js';
 import type { ICommandLoader, CommandConflict } from './types.js';
 import { SlashCommandResolver } from './SlashCommandResolver.js';
+import { buildCommandLookupMap } from '../utils/commands.js';
 
 /**
  * Orchestrates the discovery and loading of all slash commands for the CLI.
@@ -29,6 +30,7 @@ export class CommandService {
   private constructor(
     private readonly commands: readonly SlashCommand[],
     private readonly conflicts: readonly CommandConflict[],
+    private readonly commandMap: ReadonlyMap<string, SlashCommand>,
   ) {}
 
   /**
@@ -53,9 +55,11 @@ export class CommandService {
       this.emitConflictEvents(conflicts);
     }
 
+    const commandMap = buildCommandLookupMap(finalCommands);
     return new CommandService(
       Object.freeze(finalCommands),
       Object.freeze(conflicts),
+      commandMap,
     );
   }
 
@@ -111,6 +115,15 @@ export class CommandService {
    */
   getCommands(): readonly SlashCommand[] {
     return this.commands;
+  }
+
+  /**
+   * Retrieves the pre-computed lookup map of slash commands.
+   *
+   * @returns A readonly map of available `SlashCommand` objects, keyed by name and alias.
+   */
+  getCommandMap(): ReadonlyMap<string, SlashCommand> {
+    return this.commandMap;
   }
 
   /**

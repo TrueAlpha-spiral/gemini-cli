@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseSlashCommand } from './commands.js';
+import { parseSlashCommand, buildCommandLookupMap } from './commands.js';
 import { CommandKind, type SlashCommand } from '../ui/commands/types.js';
 
 // Mock command structure for testing
@@ -45,26 +45,26 @@ const mockCommands: readonly SlashCommand[] = [
   },
 ];
 
+// Build the lookup map once for all tests
+const commandMap = buildCommandLookupMap(mockCommands);
+
 describe('parseSlashCommand', () => {
   it('should parse a simple command without arguments', () => {
-    const result = parseSlashCommand('/help', mockCommands);
+    const result = parseSlashCommand('/help', commandMap);
     expect(result.commandToExecute?.name).toBe('help');
     expect(result.args).toBe('');
     expect(result.canonicalPath).toEqual(['help']);
   });
 
   it('should parse a simple command with arguments', () => {
-    const result = parseSlashCommand(
-      '/commit -m "Initial commit"',
-      mockCommands,
-    );
+    const result = parseSlashCommand('/commit -m "Initial commit"', commandMap);
     expect(result.commandToExecute?.name).toBe('commit');
     expect(result.args).toBe('-m "Initial commit"');
     expect(result.canonicalPath).toEqual(['commit']);
   });
 
   it('should parse a subcommand', () => {
-    const result = parseSlashCommand('/memory add', mockCommands);
+    const result = parseSlashCommand('/memory add', commandMap);
     expect(result.commandToExecute?.name).toBe('add');
     expect(result.args).toBe('');
     expect(result.canonicalPath).toEqual(['memory', 'add']);
@@ -73,7 +73,7 @@ describe('parseSlashCommand', () => {
   it('should parse a subcommand with arguments', () => {
     const result = parseSlashCommand(
       '/memory add some important data',
-      mockCommands,
+      commandMap,
     );
     expect(result.commandToExecute?.name).toBe('add');
     expect(result.args).toBe('some important data');
@@ -81,21 +81,21 @@ describe('parseSlashCommand', () => {
   });
 
   it('should handle a command alias', () => {
-    const result = parseSlashCommand('/mem add some data', mockCommands);
+    const result = parseSlashCommand('/mem add some data', commandMap);
     expect(result.commandToExecute?.name).toBe('add');
     expect(result.args).toBe('some data');
     expect(result.canonicalPath).toEqual(['memory', 'add']);
   });
 
   it('should handle a subcommand alias', () => {
-    const result = parseSlashCommand('/memory c', mockCommands);
+    const result = parseSlashCommand('/memory c', commandMap);
     expect(result.commandToExecute?.name).toBe('clear');
     expect(result.args).toBe('');
     expect(result.canonicalPath).toEqual(['memory', 'clear']);
   });
 
   it('should return undefined for an unknown command', () => {
-    const result = parseSlashCommand('/unknown', mockCommands);
+    const result = parseSlashCommand('/unknown', commandMap);
     expect(result.commandToExecute).toBeUndefined();
     expect(result.args).toBe('unknown');
     expect(result.canonicalPath).toEqual([]);
@@ -104,7 +104,7 @@ describe('parseSlashCommand', () => {
   it('should return the parent command if subcommand is unknown', () => {
     const result = parseSlashCommand(
       '/memory unknownsub some args',
-      mockCommands,
+      commandMap,
     );
     expect(result.commandToExecute?.name).toBe('memory');
     expect(result.args).toBe('unknownsub some args');
@@ -114,7 +114,7 @@ describe('parseSlashCommand', () => {
   it('should handle extra whitespace', () => {
     const result = parseSlashCommand(
       '  /memory   add  some data  ',
-      mockCommands,
+      commandMap,
     );
     expect(result.commandToExecute?.name).toBe('add');
     expect(result.args).toBe('some data');
@@ -122,17 +122,17 @@ describe('parseSlashCommand', () => {
   });
 
   it('should return undefined if query does not start with a slash', () => {
-    const result = parseSlashCommand('help', mockCommands);
+    const result = parseSlashCommand('help', commandMap);
     expect(result.commandToExecute).toBeUndefined();
   });
 
   it('should handle an empty query', () => {
-    const result = parseSlashCommand('', mockCommands);
+    const result = parseSlashCommand('', commandMap);
     expect(result.commandToExecute).toBeUndefined();
   });
 
   it('should handle a query with only a slash', () => {
-    const result = parseSlashCommand('/', mockCommands);
+    const result = parseSlashCommand('/', commandMap);
     expect(result.commandToExecute).toBeUndefined();
     expect(result.args).toBe('');
     expect(result.canonicalPath).toEqual([]);

@@ -174,11 +174,18 @@ export async function start_sandbox(
           sandboxEnv['NO_PROXY'] = noProxy;
           sandboxEnv['no_proxy'] = noProxy;
         }
-        proxyProcess = spawn(proxyCommand, {
-          stdio: ['ignore', 'pipe', 'pipe'],
-          shell: true,
-          detached: true,
-        });
+        const proxyTokens = parse(proxyCommand, process.env).filter(
+          (f): f is string => typeof f === 'string',
+        );
+
+        if (proxyTokens.length > 0) {
+          const [cmd, ...proxyArgs] = proxyTokens;
+          proxyProcess = spawn(cmd, proxyArgs, {
+            stdio: ['ignore', 'pipe', 'pipe'],
+            shell: false,
+            detached: true,
+          });
+        }
         // install handlers to stop proxy on exit/signal
         const stopProxy = () => {
           debugLogger.log('stopping proxy ...');
@@ -194,13 +201,13 @@ export async function start_sandbox(
         process.on('SIGTERM', stopProxy);
 
         // commented out as it disrupts ink rendering
-        // proxyProcess.stdout?.on('data', (data) => {
+        // proxyProcess?.stdout?.on('data', (data) => {
         //   console.info(data.toString());
         // });
-        proxyProcess.stderr?.on('data', (data) => {
+        proxyProcess?.stderr?.on('data', (data) => {
           debugLogger.debug(`[PROXY STDERR]: ${data.toString().trim()}`);
         });
-        proxyProcess.on('close', (code, signal) => {
+        proxyProcess?.on('close', (code, signal) => {
           if (sandboxProcess?.pid) {
             process.kill(-sandboxProcess.pid, 'SIGTERM');
           }

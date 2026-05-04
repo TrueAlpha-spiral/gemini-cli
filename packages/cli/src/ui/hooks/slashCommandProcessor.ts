@@ -111,6 +111,9 @@ export const useSlashCommandProcessor = (
   const [commands, setCommands] = useState<readonly SlashCommand[] | undefined>(
     undefined,
   );
+  const [commandMap, setCommandMap] = useState<
+    ReadonlyMap<string, SlashCommand> | undefined
+  >(undefined);
   const [reloadTrigger, setReloadTrigger] = useState(0);
 
   const reloadCommands = useCallback(() => {
@@ -338,6 +341,7 @@ export const useSlashCommandProcessor = (
       }
 
       setCommands(commandService.getCommands());
+      setCommandMap(commandService.getCommandMap());
     })();
 
     return () => {
@@ -352,7 +356,7 @@ export const useSlashCommandProcessor = (
       overwriteConfirmed?: boolean,
       addToHistory: boolean = true,
     ): Promise<SlashCommandProcessorResult | false> => {
-      if (!commands) {
+      if (!commands || !commandMap) {
         return false;
       }
       if (typeof rawQuery !== 'string') {
@@ -368,7 +372,7 @@ export const useSlashCommandProcessor = (
         commandToExecute,
         args,
         canonicalPath: resolvedCommandPath,
-      } = parseSlashCommand(trimmed, commands);
+      } = parseSlashCommand(trimmed, commandMap);
 
       // If the input doesn't match any known command, check if MCP servers
       // are still loading (the command might come from an MCP server).
@@ -729,6 +733,7 @@ export const useSlashCommandProcessor = (
       setIsProcessing,
       setConfirmationRequest,
       setCustomDialog,
+      commandMap,
     ],
   );
 

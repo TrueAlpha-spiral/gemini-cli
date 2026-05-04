@@ -59,7 +59,10 @@ import {
   isAutoExecutableCommand,
   isSlashCommand,
 } from '../utils/commandUtils.js';
-import { parseSlashCommand } from '../../utils/commands.js';
+import {
+  parseSlashCommand,
+  buildCommandLookupMap,
+} from '../../utils/commands.js';
 import * as path from 'node:path';
 import { SCREEN_READER_USER_PREFIX } from '../textConstants.js';
 import { getSafeLowColorBackground } from '../themes/color-utils.js';
@@ -416,9 +419,10 @@ export const InputPrompt: React.FC<InputPromptProps> = ({
         streamingState === StreamingState.Responding
       ) {
         if (isSlash) {
+          const commandMap = buildCommandLookupMap(slashCommands);
           const { commandToExecute } = parseSlashCommand(
             trimmedMessage,
-            slashCommands,
+            commandMap,
           );
           if (commandToExecute?.isSafeConcurrent) {
             inputHistory.handleSubmit(trimmedMessage);

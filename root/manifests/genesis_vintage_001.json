@@ -1,0 +1,19 @@
+{
+  "header": {
+    "artifact_id": "TAS_GENESIS_VINTAGE_001",
+    "origin": "did:sdf:nodes:us-tx-odessa-0",
+    "timestamp": 1782384000,
+    "signer": "did:sdf:human-api-key-001",
+    "lineage_parent_hash": null,
+    "constants": {
+      "phi_invariant": 1.618033988749895,
+      "max_agitation_tolerance": 0.05
+    }
+  },
+  "constraints": {
+    "refusal_integrity": "ACTIVE",
+    "iff_gating": "ENFORCED",
+    "thermodynamic_bounds": "ZERO_ENTROPY_DELTA"
+  },
+  "signature": "86987b0c999a758b5690eeebb952194d21709bc14231...[iPhone Secure Enclave Attestation]"
+}

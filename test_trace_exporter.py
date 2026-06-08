@@ -27,7 +27,7 @@ def valid_trace_packet():
                 "prompt": "Test query 1",
                 "response": "Response verification 1",
                 "directives_snapshot": {"refusal_integrity": "ACTIVE"},
-                "state_hash": "9b4974dead9dad24b7ce474f3da32e0aeae1ccf33600e9ce9ec31d7147cb3843"
+                "state_hash": "10def892c954625fd27215575669e68d370eda3891ea2ee9704753f0d2842025"
             },
             {
                 "turn": 2,
@@ -35,10 +35,10 @@ def valid_trace_packet():
                 "prompt": "Test query 2",
                 "response": "Response verification 2",
                 "directives_snapshot": {"refusal_integrity": "ACTIVE"},
-                "state_hash": "b063274a65a88a0ef51b98e6488564331dcb8019385417906ee3ac412b11b858"
+                "state_hash": "fcd463ae867ab6979282350e2300784eddf4cc6792618df417e1cb1d40513d92"
             }
         ],
-        "final_seal_hash": "b063274a65a88a0ef51b98e6488564331dcb8019385417906ee3ac412b11b858"
+        "final_seal_hash": "fcd463ae867ab6979282350e2300784eddf4cc6792618df417e1cb1d40513d92"
     })
 
 def test_audit_nominal_packet(valid_trace_packet):

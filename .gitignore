@@ -64,3 +64,5 @@ gemini-debug.log
 evals/logs/
 
 temp_agents/
+__pycache__/
+*.pyc

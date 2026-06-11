@@ -1,0 +1,8 @@
+[package]
+name = "sterile_runtime_prototype"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+miette = { version = "5.10.0", features = ["fancy"] }
+thiserror = "1.0.50"

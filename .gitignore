@@ -66,3 +66,6 @@ evals/logs/
 temp_agents/
 __pycache__/
 *.pyc
+sterile_runtime_prototype/target/
+sterile_runtime_prototype/target
+/sterile_runtime_prototype/target

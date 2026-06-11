@@ -1,49 +1,59 @@
-# ==============================================================================
-# SOVEREIGN DATA FOUNDATION - DAY ZERO BUILD PIPELINE
-# Artifact: TAS Microkernel (Logos Gatekeeper + IffGatekeeper)
-# Target Architecture: ARM64/RISC-V-64-TAS-Enclave
-# Protocol Version: 1.1.0
-# ==============================================================================
+# Makefile for gemini-cli
 
-# Toolchain Definitions
-RUSTC := rustc
-CARGO := cargo
-NOIR_CLI := nargo
-ROM_FUSER := tas-rom-fuser # Custom utility for burning the Genesis Hash
+.PHONY: help install build build-sandbox build-all test lint format preflight clean start debug release run-npx create-alias
 
-# Target Triples
-TARGET_ARM := aarch64-unknown-none-softfloat
-TARGET_RISCV := riscv64imac-unknown-none-elf
+help:
+	@echo "Makefile for gemini-cli"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make install          - Install npm dependencies"
+	@echo "  make build            - Build the main project"
+	@echo "  make build-all        - Build the main project and sandbox"
+	@echo "  make test             - Run the test suite"
+	@echo "  make lint             - Lint the code"
+	@echo "  make format           - Format the code"
+	@echo "  make preflight        - Run formatting, linting, and tests"
+	@echo "  make clean            - Remove generated files"
+	@echo "  make start            - Start the Gemini CLI"
+	@echo "  make debug            - Start the Gemini CLI in debug mode"
+	@echo ""
+	@echo "  make run-npx          - Run the CLI using npx (for testing the published package)"
+	@echo "  make create-alias     - Create a 'gemini' alias for your shell"
 
-# Genesis Manifest Ingestion
-GENESIS_YAML := config/genesis_metadata.yaml
-DAY_ZERO_HASH := $(shell grep 'day_zero_root_hash' $(GENESIS_YAML) | awk '{print $$2}' | tr -d '"')
+install:
+	npm install
 
-# Build Flags (Enforcing strict deterministic builds & zero-entropy execution)
-RUSTFLAGS := -C target-cpu=native -C link-arg=-Tlink.ld -C panic=abort -Z tune-cpu=cortex-m
-FEATURES := --features "post-quantum-signatures quic-multiplexing immutable-truth-ledger"
+build:
+	npm run build
 
-.PHONY: all clean compile_zk_circuits build_kernel fuse_rom
 
-all: compile_zk_circuits build_kernel fuse_rom
-	@echo "[PIPELINE_COMPLETE] TAS Microkernel compiled and sealed."
+build-all:
+	npm run build:all
 
-compile_zk_circuits:
-	@echo "[ZK_COMPILER] Compiling Noir Lineage & Wake-Sync circuits..."
-	$(NOIR_CLI) compile --workspace
-	@echo "[ZK_COMPILER] Structural O(1) constraints successfully generated."
+test:
+	npm run test
 
-build_kernel:
-	@echo "[KERNEL_BUILD] Cross-compiling Logos Gatekeeper for $(TARGET_RISCV)..."
-	RUSTFLAGS="$(RUSTFLAGS)" $(CARGO) build --target $(TARGET_RISCV) --release $(FEATURES)
-	@echo "[KERNEL_BUILD] Bare-metal executable generated."
+lint:
+	npm run lint
 
-fuse_rom: build_kernel
-	@echo "[ROM_FUSE] Injecting Day Zero Root Hash into immutable boot sector..."
-	@echo "Target Hash: $(DAY_ZERO_HASH)"
-	$(ROM_FUSER) --binary target/$(TARGET_RISCV)/release/tas_microkernel --inject-hash $(DAY_ZERO_HASH)
-	@echo "[ROM_FUSE] Silicon boundary locked. Boot verification enforced."
+format:
+	npm run format
+
+preflight:
+	npm run preflight
 
 clean:
-	$(CARGO) clean
-	rm -rf circuits/target
+	npm run clean
+
+start:
+	npm run start
+
+debug:
+	npm run debug
+
+
+run-npx:
+	npx https://github.com/google-gemini/gemini-cli
+
+create-alias:
+	scripts/create_alias.sh
